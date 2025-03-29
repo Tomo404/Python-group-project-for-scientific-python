@@ -135,12 +135,12 @@ canvas.create_text(1255, 671, text=f" x {data_unloader.infection_cubes[0]}", fon
 canvas.create_text(1255, 704, text=f" x {data_unloader.infection_cubes[1]}", font=("Arial", 18), fill="black")
 canvas.create_text(1255, 737, text=f" x {data_unloader.infection_cubes[2]}", font=("Arial", 18), fill="black")
 canvas.create_text(1255, 770, text=f" x {data_unloader.infection_cubes[3]}", font=("Arial", 18), fill="black")
-canvas.create_text(552, 621, text=f" actions: {data_unloader.actions}", font=("Arial", 8), fill="black")
-canvas.create_text(552, 639, text=f" hand size: {len(data_unloader.players_hands[0])}", font=("Arial", 8), fill="black")
-canvas.create_text(552, 657, text=f" player cards: {len(data_unloader.player_deck)}", font=("Arial", 8), fill="black")
+canvas.create_text(572, 626, text=f" remaining actions: {data_unloader.actions}", font=("Arial", 8), fill="black")
+canvas.create_text(572, 645, text=f" hand size: {len(data_unloader.players_hands[0])}", font=("Arial", 8), fill="black")
+canvas.create_text(572, 663, text=f" player cards: {len(data_unloader.player_deck)}", font=("Arial", 8), fill="black")
 players_locations = ["Atlanta"] * data_unloader.players  # One entry per player
 player_city = data_unloader.players_locations[0]
-canvas.create_text(552, 675, text=f" city: {player_city}", font=("Arial", 8), fill="black")
+canvas.create_text(572, 680, text=f" city: {player_city}", font=("Arial", 8), fill="black")
 
 # Role-to-color mapping
 role_colors = {
