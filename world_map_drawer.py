@@ -204,36 +204,60 @@ def setup_buttons(canvas, root):
 
 setup_buttons(canvas, root)  # Add buttons
 
-# Draw the outbreak_marker at the correct spot
-if outbreak_marker % 2 == 1:
-    canvas.create_oval((201*scale_factor) + x_offset - 5, ((548+outbreak_marker*36.5)*scale_factor) + y_offset - 5,
-                       (201*scale_factor) + x_offset + 5, ((548+outbreak_marker*36.5)*scale_factor) + y_offset + 5, fill="dark green", outline="black")
-elif outbreak_marker % 2 == 0 and outbreak_marker>0:
-    canvas.create_oval((157*scale_factor) + x_offset - 5, ((587+(outbreak_marker-1)*35.5)*scale_factor) + y_offset - 5,
-                       (157*scale_factor) + x_offset + 5, ((587+(outbreak_marker-1)*35.5)*scale_factor) + y_offset + 5, fill="dark green", outline="black")
-else:
-    canvas.create_oval((157 * scale_factor) + x_offset - 5, (547 * scale_factor) + y_offset - 5,
-                       (157 * scale_factor) + x_offset + 5, (547 * scale_factor) + y_offset + 5, fill="dark green",outline="black")
+outbreak_marker_id = None
+
+def update_outbreak_marker():
+    """Updates the outbreak marker position when an outbreak occurs."""
+    global outbreak_marker, outbreak_marker_id
+
+    # Delete the previous outbreak marker
+    if outbreak_marker_id:
+        canvas.delete(outbreak_marker_id)
+
+    # Determine the new position
+    if outbreak_marker % 2 == 1:
+        x, y = (201 * scale_factor) + x_offset, ((548 + outbreak_marker * 36.5) * scale_factor) + y_offset
+    elif outbreak_marker % 2 == 0 and outbreak_marker > 0:
+        x, y = (157 * scale_factor) + x_offset, ((587 + (outbreak_marker - 1) * 35.5) * scale_factor) + y_offset
+    else:
+        x, y = (157 * scale_factor) + x_offset, (547 * scale_factor) + y_offset
+
+    # Draw the new outbreak marker and store its ID
+    outbreak_marker_id = canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill="dark green", outline="black")
+
+update_outbreak_marker()
 
 cure_markers = [((695 * scale_factor) + x_offset, (1049 * scale_factor) + y_offset),
                 ((761 * scale_factor) + x_offset, (1049 * scale_factor) + y_offset),
                 ((827 * scale_factor) + x_offset, (1049 * scale_factor) + y_offset),
                 ((885 * scale_factor) + x_offset, (1049 * scale_factor) + y_offset)]
 
-# Loop through each disease type correctly
-for c, status in enumerate(data_unloader.infection_status):
+
+def update_disease_status(disease_index):
+    """Updates the displayed disease status marker for a specific disease."""
+
+    # Determine the new color based on status
+    status = data_unloader.infection_status[disease_index]
     if status == 0:
-        canvas.create_oval(cure_markers[c][0] - 10, cure_markers[c][1] - 10,
-                           cure_markers[c][0] + 10, cure_markers[c][1] + 10,
-                           fill="white", width=2)
+        color = "white"  # Not cured
     elif status == 1:
-        canvas.create_oval(cure_markers[c][0] - 10, cure_markers[c][1] - 10,
-                           cure_markers[c][0] + 10, cure_markers[c][1] + 10,
-                           fill=infection_colors[c], width=2)
+        color = infection_colors[disease_index]  # Cured
     elif status == 2:
-        canvas.create_oval(cure_markers[c][0] - 10, cure_markers[c][1] - 10,
-                           cure_markers[c][0] + 10, cure_markers[c][1] + 10,
-                           fill="green", width=2)
+        color = "green"  # Eradicated
+
+    # Draw over the existing marker
+    canvas.create_oval(
+        cure_markers[disease_index][0] - 10, cure_markers[disease_index][1] - 10,
+        cure_markers[disease_index][0] + 10, cure_markers[disease_index][1] + 10,
+        fill=color, width=2
+    )
+
+def initialize_disease_status():
+    """Draws all disease status markers at the start of the game."""
+    for disease_index in range(4):  # Assuming 4 diseases
+        update_disease_status(disease_index)
+
+initialize_disease_status()
 
 # Dictionary to hold loaded images
 role_images = {}
@@ -362,16 +386,6 @@ def draw_infection_card(event):
 # Bind buttons to functions
 button1.bind("<Button-1>", draw_player_card)
 button2.bind("<Button-1>", draw_infection_card)
-
-# Create text on the canvas for displaying coordinates
-coord_text = canvas.create_text((50* scale_factor)+ x_offset, (20* scale_factor)+ y_offset, text="Cursor: (0, 0)", font=("Arial", 12), fill="white")
-
-# Function to update coordinates on the canvas
-def update_coordinates(event):
-    canvas.itemconfig(coord_text, text=f"Cursor: ({(event.x* scale_factor)+ x_offset}, {(event.y* scale_factor)+ y_offset})")
-
-# Bind mouse movement to the update function
-canvas.bind("<Motion>", update_coordinates)
 
 if __name__ == "__main__":
     root.mainloop()
