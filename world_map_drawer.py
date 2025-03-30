@@ -45,25 +45,42 @@ x_offset = (window_width - new_width) // 2
 y_offset = (window_height - new_height) // 2
 canvas.create_image(x_offset, y_offset, anchor=tk.NW, image=map_image)
 
-# Draw research center outlines (without filling)
-for city_name, city_data in cities.items():
-    if city_data["research_center"]:  # Only draw if there is a research center
-        x, y = city_data["x"], city_data["y"]  # Extract coordinates
+# Store references to research center markers
+research_center_markers = {}
 
-        # Scale coordinates correctly
-        scaled_x = int(x * scale_factor) + x_offset
-        scaled_y = int(y * scale_factor) + y_offset
+def update_research_centers():
+    """Updates the research center outlines on the map."""
+    global research_center_markers
 
-        # Define the outline size
-        outline_size = 12  # Slightly larger than the base city marker
+    # Remove previous research center outlines
+    for marker in research_center_markers.values():
+        canvas.delete(marker)
 
-        # Draw only the white outline
-        canvas.create_oval(
-            scaled_x - outline_size, scaled_y - outline_size,
-            scaled_x + outline_size, scaled_y + outline_size,
-            outline="white", width=3
-        )
+    research_center_markers.clear()  # Clear stored references
 
+    # Redraw research center outlines
+    for city_name, city_data in data_unloader.cities.items():
+        if city_data["research_center"]:  # Only draw if there is a research center
+            x, y = city_data["x"], city_data["y"]  # Extract coordinates
+
+            # Scale coordinates correctly
+            scaled_x = int(x * scale_factor) + x_offset
+            scaled_y = int(y * scale_factor) + y_offset
+
+            # Define the outline size
+            outline_size = 12  # Slightly larger than the base city marker
+
+            # Draw only the white outline
+            marker_id = canvas.create_oval(
+                scaled_x - outline_size, scaled_y - outline_size,
+                scaled_x + outline_size, scaled_y + outline_size,
+                outline="white", width=3
+            )
+
+            # Store marker reference
+            research_center_markers[city_name] = marker_id
+
+update_research_centers()  # Update UI
 #creating the inspector mode button
 
 # Infection cube colors
@@ -127,20 +144,41 @@ hover_button.bind("<Button-1>", show_infection_popup)  # Left-click opens popup
 hover_button.bind("<Enter>", show_infections)
 hover_button.bind("<Leave>", hide_infections)
 
-#These create text to specific locations on the map, they will be updated after every action
-i = 0 #infection_rate_marker index, this will be increased when an epidemic card is played
-canvas.create_text(930, 132, text=f"{data_unloader.infection_rate_marker_amount[i]}", font=("Arial", 18), fill="black")
-canvas.create_text(1255, 635, text=f" x {data_unloader.research_centers}", font=("Arial", 24), fill="black")
-canvas.create_text(1255, 671, text=f" x {data_unloader.infection_cubes[0]}", font=("Arial", 18), fill="black")
-canvas.create_text(1255, 704, text=f" x {data_unloader.infection_cubes[1]}", font=("Arial", 18), fill="black")
-canvas.create_text(1255, 737, text=f" x {data_unloader.infection_cubes[2]}", font=("Arial", 18), fill="black")
-canvas.create_text(1255, 770, text=f" x {data_unloader.infection_cubes[3]}", font=("Arial", 18), fill="black")
-canvas.create_text(572, 626, text=f" remaining actions: {data_unloader.actions}", font=("Arial", 8), fill="black")
-canvas.create_text(572, 645, text=f" hand size: {len(data_unloader.players_hands[0])}", font=("Arial", 8), fill="black")
-canvas.create_text(572, 663, text=f" player cards: {len(data_unloader.player_deck)}", font=("Arial", 8), fill="black")
-players_locations = ["Atlanta"] * data_unloader.players  # One entry per player
-player_city = data_unloader.players_locations[0]
-canvas.create_text(572, 680, text=f" city: {player_city}", font=("Arial", 8), fill="black")
+# Store text references
+text_elements = {}
+
+def draw_initial_text():
+    """Creates the initial text elements on the map."""
+    global text_elements
+    i = data_unloader.infection_rate_marker  # Infection rate index
+
+    text_elements["infection_rate"] = canvas.create_text(930, 132, text=f"{data_unloader.infection_rate_marker_amount[i]}", font=("Arial", 18), fill="black")
+    text_elements["research_centers"] = canvas.create_text(1255, 635, text=f" x {data_unloader.research_centers}", font=("Arial", 24), fill="black")
+    text_elements["infection_yellow"] = canvas.create_text(1255, 671, text=f" x {data_unloader.infection_cubes[0]}", font=("Arial", 18), fill="black")
+    text_elements["infection_red"] = canvas.create_text(1255, 704, text=f" x {data_unloader.infection_cubes[1]}", font=("Arial", 18), fill="black")
+    text_elements["infection_blue"] = canvas.create_text(1255, 737, text=f" x {data_unloader.infection_cubes[2]}", font=("Arial", 18), fill="black")
+    text_elements["infection_black"] = canvas.create_text(1255, 770, text=f" x {data_unloader.infection_cubes[3]}", font=("Arial", 18), fill="black")
+    text_elements["remaining_actions"] = canvas.create_text(572, 626, text=f" remaining actions: {data_unloader.actions}", font=("Arial", 8), fill="black")
+    text_elements["hand_size"] = canvas.create_text(572, 645, text=f" hand size: {len(data_unloader.players_hands[0])}", font=("Arial", 8), fill="black")
+    text_elements["player_deck"] = canvas.create_text(572, 663, text=f" player cards: {len(data_unloader.player_deck)}", font=("Arial", 8), fill="black")
+    text_elements["player_city"] = canvas.create_text(572, 680, text=f" city: {data_unloader.players_locations[0]}", font=("Arial", 8), fill="black")
+
+draw_initial_text()
+
+def update_text(current_player_id):
+    """Updates the text elements dynamically based on the current player."""
+    i = data_unloader.infection_rate_marker  # Get updated infection rate index
+
+    canvas.itemconfig(text_elements["infection_rate"], text=f"{data_unloader.infection_rate_marker_amount[i]}")
+    canvas.itemconfig(text_elements["research_centers"], text=f" x {data_unloader.research_centers}")
+    canvas.itemconfig(text_elements["infection_yellow"], text=f" x {data_unloader.infection_cubes[0]}")
+    canvas.itemconfig(text_elements["infection_red"], text=f" x {data_unloader.infection_cubes[1]}")
+    canvas.itemconfig(text_elements["infection_blue"], text=f" x {data_unloader.infection_cubes[2]}")
+    canvas.itemconfig(text_elements["infection_black"], text=f" x {data_unloader.infection_cubes[3]}")
+    canvas.itemconfig(text_elements["remaining_actions"], text=f" remaining actions: {data_unloader.actions}")
+    canvas.itemconfig(text_elements["hand_size"], text=f" hand size: {len(data_unloader.players_hands[current_player_id])}")
+    canvas.itemconfig(text_elements["player_deck"], text=f" player cards: {len(data_unloader.player_deck)}")
+    canvas.itemconfig(text_elements["player_city"], text=f" city: {data_unloader.players_locations[current_player_id]}")
 
 # Role-to-color mapping
 role_colors = {
@@ -149,18 +187,37 @@ role_colors = {
     "Operations Expert": "lawn green",
     "Quarantine Specialist": "purple2"
 }
-# This for loop draws the players into the starting cities
+
+# Dictionary to store player markers on the map
+player_markers = {}
+
+# Function to update player markers when they move
+def update_player_marker(player_id, new_city):
+    """Moves a player's marker on the map."""
+    global player_markers  # Track player markers
+
+    # Get new coordinates
+    city_x = data_unloader.cities[new_city]["x"] * scale_factor + x_offset
+    city_y = data_unloader.cities[new_city]["y"] * scale_factor + y_offset
+
+    # Get the assigned role color
+    player_role = data_unloader.in_game_roles[player_id]
+    role_color = role_colors.get(player_role, "pink")  # Default to pink if role not found
+
+    # Remove the old marker if it exists
+    if player_id in player_markers:
+        canvas.delete(player_markers[player_id])
+
+    # Draw the new marker at the updated location
+    new_marker = canvas.create_oval(city_x - 5, city_y - 5, city_x + 5, city_y + 5, fill=role_color, outline="black")
+
+    # Store the new marker
+    player_markers[player_id] = new_marker
+
+
+# Initial placement of players
 for player_id, (player, city) in enumerate(data_unloader.players_locations.items()):
-    city_x = data_unloader.cities[city]["x"] * scale_factor + x_offset
-    city_y = data_unloader.cities[city]["y"] * scale_factor + y_offset
-
-    # Get the assigned role for the current player
-    current_roles = data_unloader.in_game_roles
-    player_role = current_roles[player_id]  # Get the corresponding role
-    role_color = role_colors.get(player_role, "pink")  # Default to gray if role not found
-
-    # Draw a small circle for the player at the city's coordinates
-    canvas.create_oval(city_x - 5, city_y - 5, city_x + 5, city_y + 5, fill=role_color, outline="black")
+    update_player_marker(player_id, city)  # Call function to create initial markers
 
 #player hand management
 def player_hand_popup():
