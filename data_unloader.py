@@ -37,6 +37,7 @@ cities = load_cities()
 infection_cubes = [24, 24, 24, 24]  # Yellow, Red, Blue, Black
 research_centers = 5
 infection_rate_marker_amount = [2, 2, 2, 3, 3, 4, 4]
+infection_rate_marker = 0
 infection_status = [0, 0, 0, 0] #0: free, 1: cured, 2: eradicated
 actions = 4
 outbreak_marker = 0
@@ -211,6 +212,7 @@ def finalize_player_deck():
     print("\n✅ Player deck is finalized and shuffled.")
 
 finalize_player_deck()  # Add epidemic cards and shuffle
+
 players_locations = {i: "Atlanta" for i in range(players)}
 
 print(f"✅ Player deck ready with {len(player_deck)} cards, including {epidemic_cards} epidemic cards.")
