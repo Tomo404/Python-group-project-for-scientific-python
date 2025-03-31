@@ -1,4 +1,4 @@
-# Tomo-s-group-project-for-scientific-python
+# Group-project-for-scientific-python
 We are coding Pandemic. Keep out.
 
 This project is a simplified version of the boardgame Pandemic. For more information of the actual game, look it up at boardgamegeek.com.
