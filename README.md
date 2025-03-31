@@ -5,12 +5,15 @@ This project is a simplified version of the boardgame Pandemic. For more informa
 
 ## Explanation:
 
-# city_data, infection_cards and other_cards are meant to be imported
-These include all informations on:
+# variables: city_data, infection_cards and other_cards
+These are imported into the main files, and include all informations on:
 cities: name, coordinates, infection level, infection color, connections, player amounts, research center
 infections: city name, infection color
 city cards: name, coordinates, infection color
 event cards: name, effect
+
+# pictures
+Picture of the game board, the UI and the character roles
 
 # data_unloader
 Unloads all the data from txt files to database, puts them in directories for easy access, creates the decks and initializes the game
