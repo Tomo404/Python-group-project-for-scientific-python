@@ -136,8 +136,8 @@ def show_infection_popup(event):
             tk.Label(popup, text=", ".join(infected_cities), font=("Arial", 10), wraplength=350, justify="left").pack(anchor="w", padx=20)
 
 # Create the hover and pop-up button
-hover_button = tk.Button(root, text="Show Infections", bg="grey30", fg="black")
-canvas.create_window(575, 727, window=hover_button)
+hover_button = tk.Button(root, text="Show Infections", bg="green3", fg="black")
+canvas.create_window(575, 710, window=hover_button)
 hover_button.bind("<Button-1>", show_infection_popup)  # Left-click opens popup
 
 # Bind hover events
@@ -152,16 +152,16 @@ def draw_initial_text():
     global text_elements
     i = data_unloader.infection_rate_marker  # Infection rate index
 
-    text_elements["infection_rate"] = canvas.create_text(930, 132, text=f"{data_unloader.infection_rate_marker_amount[i]}", font=("Arial", 18), fill="black")
-    text_elements["research_centers"] = canvas.create_text(1255, 635, text=f" x {data_unloader.research_centers}", font=("Arial", 24), fill="black")
-    text_elements["infection_yellow"] = canvas.create_text(1255, 671, text=f" x {data_unloader.infection_cubes[0]}", font=("Arial", 18), fill="black")
-    text_elements["infection_red"] = canvas.create_text(1255, 704, text=f" x {data_unloader.infection_cubes[1]}", font=("Arial", 18), fill="black")
-    text_elements["infection_blue"] = canvas.create_text(1255, 737, text=f" x {data_unloader.infection_cubes[2]}", font=("Arial", 18), fill="black")
-    text_elements["infection_black"] = canvas.create_text(1255, 770, text=f" x {data_unloader.infection_cubes[3]}", font=("Arial", 18), fill="black")
-    text_elements["remaining_actions"] = canvas.create_text(572, 626, text=f" remaining actions: {data_unloader.actions}", font=("Arial", 8), fill="black")
-    text_elements["hand_size"] = canvas.create_text(572, 645, text=f" hand size: {len(data_unloader.players_hands[0])}", font=("Arial", 8), fill="black")
-    text_elements["player_deck"] = canvas.create_text(572, 663, text=f" player cards: {len(data_unloader.player_deck)}", font=("Arial", 8), fill="black")
-    text_elements["player_city"] = canvas.create_text(572, 680, text=f" city: {data_unloader.players_locations[0]}", font=("Arial", 8), fill="black")
+    text_elements["infection_rate"] = canvas.create_text(930, 132, text=f"{data_unloader.infection_rate_marker_amount[i]}", font=("Arial", 18, "bold"), fill="black")
+    text_elements["research_centers"] = canvas.create_text(1255, 635, text=f" x {data_unloader.research_centers}", font=("Arial", 24, "bold"), fill="black")
+    text_elements["infection_yellow"] = canvas.create_text(1255, 671, text=f" x {data_unloader.infection_cubes[0]}", font=("Arial", 18, "bold"), fill="black")
+    text_elements["infection_red"] = canvas.create_text(1255, 704, text=f" x {data_unloader.infection_cubes[1]}", font=("Arial", 18, "bold"), fill="black")
+    text_elements["infection_blue"] = canvas.create_text(1255, 737, text=f" x {data_unloader.infection_cubes[2]}", font=("Arial", 18, "bold"), fill="black")
+    text_elements["infection_black"] = canvas.create_text(1255, 770, text=f" x {data_unloader.infection_cubes[3]}", font=("Arial", 18, "bold"), fill="black")
+    text_elements["remaining_actions"] = canvas.create_text(572, 626, text=f" remaining actions: {data_unloader.actions}", font=("Arial", 8, "bold"), fill="black")
+    text_elements["hand_size"] = canvas.create_text(572, 645, text=f" hand size: {len(data_unloader.players_hands[0])}", font=("Arial", 8, "bold"), fill="black")
+    text_elements["player_deck"] = canvas.create_text(572, 663, text=f" player cards: {len(data_unloader.player_deck)}", font=("Arial", 8, "bold"), fill="black")
+    text_elements["player_city"] = canvas.create_text(572, 680, text=f" city: {data_unloader.players_locations[0]}", font=("Arial", 8, "bold"), fill="black")
 
 draw_initial_text()
 
@@ -252,7 +252,8 @@ def setup_buttons(canvas, root):
         ("Treat Disease", 440, 735, functions.treat_disease()),
         ("Share Knowledge", 440, 757, functions.share_knowledge()),
         ("Discover Cure", 440, 779, functions.discover_cure()),
-        ("Play Event Card", 573, 774, functions.play_event_card())
+        ("Play Event Card", 573, 774, functions.play_event_card()),
+        ("Skip Turn", 573, 744, functions.skip_turn())
     ]
 
     for text, x, y, command in buttons:
