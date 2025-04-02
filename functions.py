@@ -1,3 +1,5 @@
+import world_map_drawer
+
 def drive_ferry():
     print("Drive/Ferry action triggered!")
 
@@ -25,6 +27,9 @@ def discover_cure():
 def play_event_card():
     print("Playing an event card!")
 
+def skip_turn():
+    print("Turn skipped!")
+
 def action_phase(player):
     print("Player X's action phase begins.")
     #for n in actions:
@@ -39,3 +44,9 @@ def drawing_phase(player):
 def infection_phase(player):
     #if infection_phase preventing card was played, skip this
     print("Player X's infection phase begins.")
+
+def draw_player_card():
+    drawing_phase(world_map_drawer.current_playerturn)
+
+def draw_infection_card():
+    infection_phase(world_map_drawer.current_playerturn)
