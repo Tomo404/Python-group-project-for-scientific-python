@@ -238,29 +238,44 @@ def player_hand_popup():
 player_button = tk.Button(root, text="Show Player's Hand", command=player_hand_popup, bg="grey30", fg="black", width=24, height=8, font=("Arial", 12, "bold"))
 canvas.create_window((1199 * scale_factor) + x_offset, (1056 * scale_factor) + y_offset, window=player_button)
 
-#movement and action texts
-def setup_buttons(canvas, root):
+def handle_click(action):
+    """Handles button clicks by executing the corresponding action."""
+    if action in functions.__dict__:
+        functions.__dict__[action]()  # Calls the function dynamically
+    else:
+        print(f"Action '{action}' not found in functions.")
+
+def setup_buttons(event):
     button_width = 120  # Approximate width of the buttons
     button_height = 20  # Approximate height of the buttons
 
     buttons = [
-        ("Drive/Ferry", 440, 625, functions.drive_ferry()),
-        ("Direct Flight", 440, 647, functions.direct_flight()),
-        ("Charter Flight", 440, 669, functions.charter_flight()),
-        ("Shuttle Flight", 440, 691, functions.shuttle_flight()),
-        ("Build R.C.", 440, 713, functions.build_research_center()),
-        ("Treat Disease", 440, 735, functions.treat_disease()),
-        ("Share Knowledge", 440, 757, functions.share_knowledge()),
-        ("Discover Cure", 440, 779, functions.discover_cure()),
-        ("Play Event Card", 573, 774, functions.play_event_card()),
-        ("Skip Turn", 573, 744, functions.skip_turn())
+        ("Drive/Ferry", 440, 625, "drive_ferry"),
+        ("Direct Flight", 440, 647, "direct_flight"),
+        ("Charter Flight", 440, 669, "charter_flight"),
+        ("Shuttle Flight", 440, 691, "shuttle_flight"),
+        ("Build R.C.", 440, 713, "build_research_center"),
+        ("Treat Disease", 440, 735, "treat_disease"),
+        ("Share Knowledge", 440, 757, "share_knowledge"),
+        ("Discover Cure", 440, 779, "discover_cure"),
+        ("Play Event Card", 573, 774, "play_event_card")
     ]
 
-    for text, x, y, command in buttons:
-        button = tk.Button(root, text=text, font=("Arial", 8), bg="grey30", fg="black", command=command)
+    for text, x, y, action in buttons:
+        button = tk.Button(root, text=text, font=("Arial", 8), bg="grey30", fg="black",
+                           command=lambda a=action: handle_click(a))
         button.place(x=4 + x - button_width // 2, y=y - button_height // 2, width=button_width, height=button_height)
 
-setup_buttons(canvas, root)  # Add buttons
+setup_buttons(canvas)
+
+def setup_skip_turn_button(event):
+    skip_button = tk.Button(root, text="Skip Turn", font=("Arial", 8), bg="grey30", fg="black",
+                            command=lambda: handle_click("skip_turn"))
+    button_width = 120
+    button_height = 20
+    skip_button.place(x=4 + 573 - button_width // 2, y=744 - button_height // 2, width=button_width, height=button_height)
+
+setup_skip_turn_button(canvas)
 
 outbreak_marker_id = None
 
@@ -281,7 +296,7 @@ def update_outbreak_marker():
         x, y = (157 * scale_factor) + x_offset, (547 * scale_factor) + y_offset
 
     # Draw the new outbreak marker and store its ID
-    outbreak_marker_id = canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill="dark green", outline="black")
+    outbreak_marker_id = canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill="green4", outline="black")
 
 update_outbreak_marker()
 
@@ -403,6 +418,7 @@ button_background_image2 = ImageTk.PhotoImage(resized_image2)
 button_background_image1 = ImageTk.PhotoImage(resized_image1)
 
 # Create buttons with text overlay
+button2_action="draw_infection_card"
 button2 = tk.Button(
     root,
     image=button_background_image2,
@@ -411,9 +427,10 @@ button2 = tk.Button(
     fg="white",
     font=("Arial", 12, "bold"),
     relief="flat",
-    command=lambda: print("Infection cards")
+    command=lambda a=button2_action: handle_click(a)
 )
 
+button1_action="draw_player_card"
 button1 = tk.Button(
     root,
     image=button_background_image1,
@@ -422,7 +439,7 @@ button1 = tk.Button(
     fg="white",
     font=("Arial", 12, "bold"),
     relief="flat",
-    command=lambda: print("Player cards")
+    command=lambda a=button1_action: handle_click(a)
 )
 
 # Place buttons at specified coordinates
@@ -433,17 +450,6 @@ y_coord1 = (200 * scale_factor) + y_offset  # y-coordinate for center
 
 button1.place(x=x_coord2, y=y_coord2, anchor="center")
 button2.place(x=x_coord1, y=y_coord1, anchor="center")
-
-# Left-click handlers
-def draw_player_card(event):
-    functions.drawing_phase(current_playerturn)
-
-def draw_infection_card(event):
-    functions.infection_phase(current_playerturn)
-
-# Bind buttons to functions
-button1.bind("<Button-1>", draw_player_card)
-button2.bind("<Button-1>", draw_infection_card)
 
 if __name__ == "__main__":
     root.mainloop()
