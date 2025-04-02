@@ -14,7 +14,7 @@ window_width, window_height = 1550, 800
 root.geometry(f"{window_width}x{window_height}")
 
 # Load image
-image_path = "pictures/world_map.png"  # Ensure correct path
+image_path = "../pictures/world_map.png"  # Ensure correct path
 pil_image = Image.open(image_path)
 img_width, img_height = pil_image.size  # Get image size
 
@@ -32,7 +32,7 @@ canvas = tk.Canvas(root, width=window_width, height=window_height)
 canvas.pack(fill="both", expand=True)
 
 # Load the background image
-bg_image_path = "pictures/background_image.png"  # Replace with your actual image file
+bg_image_path = "../pictures/background_image.png"  # Replace with your actual image file
 bg_image = Image.open(bg_image_path)
 bg_image = bg_image.resize((window_width, window_height), Image.LANCZOS)
 bg_tk_image = ImageTk.PhotoImage(bg_image)
@@ -346,7 +346,7 @@ def load_role_images():
     roles = data_unloader.player_roles
     for role in roles:
         try:
-            img = Image.open(f"pictures/{role.lower().replace(' ', '_')}.png")  # Ensure correct file naming
+            img = Image.open(f"../pictures/{role.lower().replace(' ', '_')}.png")  # Ensure correct file naming
             img = img.resize((100, 140))  # Resize to fit UI
             role_images[role] = ImageTk.PhotoImage(img)
 
@@ -409,9 +409,9 @@ def update_game_text(message):
         fill="black"
     )
 # Putting on the player and infection card backs onto the map, with buttons as well
-original_image1 = Image.open("pictures/infection_card_back.png")
+original_image1 = Image.open("../pictures/infection_card_back.png")
 resized_image2 = original_image1.resize((original_image1.width + 10, original_image1.height - 5))
-original_image2 = Image.open("pictures/player_card_back.png")
+original_image2 = Image.open("../pictures/player_card_back.png")
 resized_image1 = original_image2.resize((original_image2.width - 25, original_image2.height - 25))
 
 button_background_image2 = ImageTk.PhotoImage(resized_image2)

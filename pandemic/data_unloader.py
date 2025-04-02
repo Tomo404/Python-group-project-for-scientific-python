@@ -3,7 +3,7 @@ import random
 
 def load_cities():
     """Loads and formats city data from the file."""
-    with open("variables/cities_data.txt", "r", encoding="utf-8") as file:
+    with open("../variables/cities_data.txt", "r", encoding="utf-8") as file:
         cities_data = json.load(file)
 
     # Process each city and store it in a structured dictionary
@@ -45,7 +45,7 @@ player_roles = ["Medic", "Scientist", "Operations Expert", "Quarantine Specialis
 
 def load_infections():
     """Loads and formats city data from the file."""
-    with open("variables/infection_cards.txt", "r", encoding="utf-8") as file:
+    with open("../variables/infection_cards.txt", "r", encoding="utf-8") as file:
         infection_data = json.load(file)
 
     # Process each city and store it in a structured dictionary
@@ -137,7 +137,7 @@ def load_player_cards():
     """Loads city and event cards from file, adds epidemic cards, and shuffles the player deck."""
     global epidemic_cards  # Access global variable
 
-    with open("variables/other_cards.txt", "r", encoding="utf-8") as file:
+    with open("../variables/other_cards.txt", "r", encoding="utf-8") as file:
         cards_data = json.load(file)
 
     city_cards = []
