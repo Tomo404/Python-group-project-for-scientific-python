@@ -1,0 +1,7 @@
+version: 2
+formats:
+  - html
+  - pdf
+  - epub
+sphinx:
+  configuration: docs/source/conf.py
