@@ -15,3 +15,7 @@ documentation for details.
    :maxdepth: 2
    :caption: Contents:
 
+.. automodule:: pandemic.functions
+   :members:
+   :undoc-members:
+   :show-inheritance:
