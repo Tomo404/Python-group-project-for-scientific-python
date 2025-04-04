@@ -3,7 +3,6 @@ from PIL import Image, ImageTk
 
 import os
 from pandemic import data_unloader
-from pandemic import functions
 from pandemic.data_unloader import cities  # Import city data
 
 if __name__ == "__main__":
@@ -241,6 +240,7 @@ canvas.create_window((1199 * scale_factor) + x_offset, (1056 * scale_factor) + y
 
 def handle_click(action):
     """Handles button clicks by executing the corresponding action."""
+    import functions
     if action in functions.__dict__:
         functions.__dict__[action]()  # Calls the function dynamically
     else:
