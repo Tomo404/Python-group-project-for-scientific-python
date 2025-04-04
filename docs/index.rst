@@ -20,17 +20,17 @@ documentation for details.
    pandemic.functions
    pandemic.turn_handler
 
-.. automodule:: pandemic.functions
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 .. automodule:: pandemic.data_unloader
    :members:
    :undoc-members:
    :show-inheritance:
 
 .. automodule:: pandemic.world_map_drawer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: pandemic.functions
    :members:
    :undoc-members:
    :show-inheritance:
