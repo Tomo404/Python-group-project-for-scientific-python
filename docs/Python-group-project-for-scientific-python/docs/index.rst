@@ -44,7 +44,11 @@ documentation for details.
    :show-inheritance:
    :no-index:
 
-.. image:: docs/Python-group-project-for-scientific-python/docs/pictures/medic.png
-.. image:: docs/Python-group-project-for-scientific-python/docs/pictures/scientist.png
-.. image:: docs/Python-group-project-for-scientific-python/docs/pictures/operations_expert.png
-.. image:: docs/Python-group-project-for-scientific-python/docs/pictures/quarantine_specialist.png
+.. image:: pictures/medic.png
+   :alt: Medic Role
+.. image:: pictures/scientist.png
+   :alt: Scientist Role
+.. image:: pictures/operations_expert.png
+   :alt: Operations Expert Role
+.. image:: pictures/quarantine_specialist.png
+   :alt: Quarantine Specialist Role
