@@ -8,7 +8,8 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../pandemic'))  # Adjust if needed
+sys.path.insert(0, os.path.abspath('../')) 
+# sys.path.insert(0, os.path.abspath('../pandemic'))  # Adjust if needed
 
 project = 'pandemic'
 copyright = '2025, Bartha Lilla, Kerényi Kornél, Tolvaj Tamás'
