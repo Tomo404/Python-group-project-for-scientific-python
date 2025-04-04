@@ -4,7 +4,7 @@
 # Required
 version: 2
 python:
-  version: "3.9"  # or whatever version you are using
+  version: "3"  # or whatever version you are using
   install:
     - method: pip
       path: .
