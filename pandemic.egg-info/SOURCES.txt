@@ -8,7 +8,6 @@ pandemic/world_map_drawer.py
 pandemic.egg-info/PKG-INFO
 pandemic.egg-info/SOURCES.txt
 pandemic.egg-info/dependency_links.txt
-pandemic.egg-info/requires.txt
 pandemic.egg-info/top_level.txt
 pandemic/../pictures/Medic.png
 pandemic/../pictures/Operations_Expert.png

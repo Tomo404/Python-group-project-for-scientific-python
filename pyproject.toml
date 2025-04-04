@@ -15,8 +15,6 @@ authors = [
   { name = "Tolvaj Tamás", email = "tolvaktomi@gmail.com" }
 ]
 dependencies = [
-  "tkinter",
-  "random"
 ]
 
 [tool.setuptools]

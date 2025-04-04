@@ -6,8 +6,6 @@ Author-email: Bartha Lilla <barthalilla1@gmail.com>, Kerényi Kornél <kerenyiko
 License: MIT
 Requires-Python: >=3.9
 Description-Content-Type: text/markdown
-Requires-Dist: tkinter
-Requires-Dist: random
 
 # Group-project-for-scientific-python
 We are coding Pandemic. Keep out.

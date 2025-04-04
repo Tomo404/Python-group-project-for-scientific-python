@@ -1,4 +1,4 @@
-import world_map_drawer
+from . import world_map_drawer
 from typing import Any
 
 def drive_ferry() -> None:
