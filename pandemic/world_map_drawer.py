@@ -48,6 +48,17 @@ def create_window():
 if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
     create_window()
 
+def can_perform_action():
+    if data_unloader.actions > 0:
+        data_unloader.actions -= 1
+        update_text(player_id) # Ensure UI updates
+        return True
+    else:
+        import functions
+        print("No remaining actions!")
+        functions.skip_turn()  # Ends turn if actions are exhausted
+        return False
+
 # Store references to research center markers
 research_center_markers = {}
 
