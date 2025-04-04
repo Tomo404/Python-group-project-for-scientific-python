@@ -20,25 +20,25 @@ documentation for details.
    functions
    turn_handler
 
-.. automodule:: pandemic.data_unloader
+.. automodule:: data_unloader
    :members:
    :undoc-members:
    :show-inheritance:
    :no-index:
 
-.. automodule:: pandemic.world_map_drawer
+.. automodule:: world_map_drawer
    :members:
    :undoc-members:
    :show-inheritance:
    :no-index:
 
-.. automodule:: pandemic.functions
+.. automodule:: functions
    :members:
    :undoc-members:
    :show-inheritance:
    :no-index:
 
-.. automodule:: pandemic.turn_handler
+.. automodule:: turn_handler
    :members:
    :undoc-members:
    :show-inheritance:
