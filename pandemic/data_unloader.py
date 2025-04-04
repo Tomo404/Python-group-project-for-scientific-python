@@ -70,9 +70,9 @@ def set_game_settings():
     global players, epidemic_cards
 
     if not os.environ.get("READTHEDOCS"):
-    players = int(input("How many players? (2-4): "))
-else:
-    players = 2  # Set a default value for documentation
+        players = int(input("How many players? (2-4): "))
+    else:
+        players = 2  # Set a default value for documentation
 
     # Validate player count (between 2 and 4)
     while True:
