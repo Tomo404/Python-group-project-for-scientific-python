@@ -5,6 +5,7 @@ import os
 from pandemic import data_unloader
 from pandemic.data_unloader import cities  # Import city data
 
+root = tk.Tk()
 window_width, window_height = 1550, 800
 # Load image
 image_path = "../pictures/world_map.png"  # Ensure correct path
