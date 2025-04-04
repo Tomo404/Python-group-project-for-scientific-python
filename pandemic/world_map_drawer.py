@@ -7,6 +7,7 @@ from pandemic.data_unloader import cities  # Import city data
 
 root = tk.Tk()
 window_width, window_height = 1550, 800
+canvas = tk.Canvas(root, width=window_width, height=window_height)
 # Load image
 image_path = "../pictures/world_map.png"  # Ensure correct path
 pil_image = Image.open(image_path)
