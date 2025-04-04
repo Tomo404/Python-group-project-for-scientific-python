@@ -43,7 +43,8 @@ def create_window():
     canvas.create_image(x_offset, y_offset, anchor=tk.NW, image=map_image)
     root.mainloop()
 
-create_window()
+if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
+    create_window()
 
 # Store references to research center markers
 research_center_markers = {}
