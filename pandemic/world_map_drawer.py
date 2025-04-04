@@ -297,7 +297,7 @@ def setup_skip_turn_button(event):
         skip_button.place(x=4 + 573 - button_width // 2, y=744 - button_height // 2, width=button_width, height=button_height)
 
 outbreak_marker_id = None
-outbreak_marker = None
+outbreak_marker = 0
 
 def update_outbreak_marker():
     if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
