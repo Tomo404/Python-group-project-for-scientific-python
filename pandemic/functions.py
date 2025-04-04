@@ -14,47 +14,47 @@ def reset_card_draws():
 
 def drive_ferry() -> None:
     if world_map_drawer.can_perform_action():
-    """Perform the Drive/Ferry action."""
+        """Perform the Drive/Ferry action."""
         print("Drive/Ferry action triggered!")
 
 def direct_flight() -> None:
     if world_map_drawer.can_perform_action():
-    """Perform the Direct Flight action."""
+        """Perform the Direct Flight action."""
         print("Direct Flight action triggered!")
 
 def charter_flight() -> None:
     if world_map_drawer.can_perform_action():
-    """Perform the Charter Flight action."""
+        """Perform the Charter Flight action."""
         print("Charter Flight action triggered!")
 
 def shuttle_flight() -> None:
     if world_map_drawer.can_perform_action():
-    """Perform the Shuttle Flight action."""
+        """Perform the Shuttle Flight action."""
         print("Shuttle Flight action triggered!")
 
 def build_research_center() -> None:
     if world_map_drawer.can_perform_action():
-    """Perform the action of building a research center."""
+        """Perform the action of building a research center."""
         print("Building a Research Center!")
 
 def treat_disease() -> None:
     if world_map_drawer.can_perform_action():
-    """Perform the Treat Disease action."""
+        """Perform the Treat Disease action."""
         print("Treating disease!")
 
 def share_knowledge() -> None:
     if world_map_drawer.can_perform_action():
-    """Perform the Share Knowledge action."""
+        """Perform the Share Knowledge action."""
         print("Sharing knowledge!")
 
 def discover_cure() -> None:
     if world_map_drawer.can_perform_action():
-    """Perform the Discover Cure action."""
+        """Perform the Discover Cure action."""
         print("Discovering cure!")
 
 def play_event_card() -> None:
     if world_map_drawer.can_perform_action():
-    """Perform the Play Event Card action."""
+        """Perform the Play Event Card action."""
         print("Playing an event card!")
 
 def skip_turn() -> None:
