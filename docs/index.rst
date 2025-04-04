@@ -15,6 +15,11 @@ documentation for details.
    :maxdepth: 2
    :caption: Contents:
 
+   pandemic.data_unloader
+   pandemic.world_map_drawer
+   pandemic.functions
+   pandemic.turn_handler
+
 .. automodule:: pandemic.functions
    :members:
    :undoc-members:
