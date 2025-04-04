@@ -5,45 +5,45 @@ import os
 from pandemic import data_unloader
 from pandemic.data_unloader import cities  # Import city data
 
-if __name__ == "__main__":
+def create_window():
     root = tk.Tk()
+    window_width, window_height = 1550, 800
+    root.geometry(f"{window_width}x{window_height}")
     root.title("Pandemic Game Map")
+    # Load image
+    image_path = "../pictures/world_map.png"  # Ensure correct path
+    pil_image = Image.open(image_path)
+    img_width, img_height = pil_image.size  # Get image size
 
-# Window size
-window_width, window_height = 1550, 800
-root.geometry(f"{window_width}x{window_height}")
+    # Scale image while maintaining aspect ratio
+    scale_factor = min(window_width / img_width, window_height / img_height)
+    new_width = int(img_width * scale_factor)
+    new_height = int(img_height * scale_factor)
+    resized_image = pil_image.resize((new_width, new_height), Image.LANCZOS)
 
-# Load image
-image_path = "../pictures/world_map.png"  # Ensure correct path
-pil_image = Image.open(image_path)
-img_width, img_height = pil_image.size  # Get image size
+    # Convert to Tkinter format
+    map_image = ImageTk.PhotoImage(resized_image)
 
-# Scale image while maintaining aspect ratio
-scale_factor = min(window_width / img_width, window_height / img_height)
-new_width = int(img_width * scale_factor)
-new_height = int(img_height * scale_factor)
-resized_image = pil_image.resize((new_width, new_height), Image.LANCZOS)
+    # Create canvas
+    canvas = tk.Canvas(root, width=window_width, height=window_height)
+    canvas.pack(fill="both", expand=True)
 
-# Convert to Tkinter format
-map_image = ImageTk.PhotoImage(resized_image)
+    # Load the background image
+    bg_image_path = "../pictures/background_image.png"  # Replace with your actual image file
+    bg_image = Image.open(bg_image_path)
+    bg_image = bg_image.resize((window_width, window_height), Image.LANCZOS)
+    bg_tk_image = ImageTk.PhotoImage(bg_image)
 
-# Create canvas
-canvas = tk.Canvas(root, width=window_width, height=window_height)
-canvas.pack(fill="both", expand=True)
+    # Place background image on the canvas (fills the whole window)
+    canvas.create_image(0, 0, anchor=tk.NW, image=bg_tk_image)
 
-# Load the background image
-bg_image_path = "../pictures/background_image.png"  # Replace with your actual image file
-bg_image = Image.open(bg_image_path)
-bg_image = bg_image.resize((window_width, window_height), Image.LANCZOS)
-bg_tk_image = ImageTk.PhotoImage(bg_image)
+    # Center image in canvas
+    x_offset = (window_width - new_width) // 2
+    y_offset = (window_height - new_height) // 2
+    canvas.create_image(x_offset, y_offset, anchor=tk.NW, image=map_image)
+    root.mainloop()
 
-# Place background image on the canvas (fills the whole window)
-canvas.create_image(0, 0, anchor=tk.NW, image=bg_tk_image)
-
-# Center image in canvas
-x_offset = (window_width - new_width) // 2
-y_offset = (window_height - new_height) // 2
-canvas.create_image(x_offset, y_offset, anchor=tk.NW, image=map_image)
+create_window()
 
 # Store references to research center markers
 research_center_markers = {}
