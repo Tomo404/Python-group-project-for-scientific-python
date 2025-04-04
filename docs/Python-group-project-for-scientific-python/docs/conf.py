@@ -14,7 +14,7 @@ from unittest.mock import MagicMock
 MOCK_MODULES = ["tkinter", "_tkinter"]
 sys.modules.update((mod, MagicMock()) for mod in MOCK_MODULES)
 os.environ["SPHINX_BUILD"] = "1"
-sys.path.insert(0, os.path.abspath('../')) 
+sys.path.insert(0, os.path.abspath('../pandemic')) 
 # sys.path.insert(0, os.path.abspath('../pandemic'))  # Adjust if needed
 
 project = 'pandemic'
