@@ -15,10 +15,10 @@ documentation for details.
    :maxdepth: 2
    :caption: Contents:
 
-   pandemic.data_unloader
-   pandemic.world_map_drawer
-   pandemic.functions
-   pandemic.turn_handler
+   docs/Python-group-project-for-scientific-python/docs/pandemic.data_unloader
+   docs/Python-group-project-for-scientific-python/docs/pandemic.world_map_drawer
+   docs/Python-group-project-for-scientific-python/docs/pandemic.functions
+   docs/Python-group-project-for-scientific-python/docs/pandemic.turn_handler
 
 .. automodule:: pandemic.data_unloader
    :members:
