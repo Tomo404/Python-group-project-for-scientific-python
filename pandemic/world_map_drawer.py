@@ -94,7 +94,6 @@ def update_research_centers():
             # Store marker reference
             research_center_markers[city_name] = marker_id
 
-update_research_centers()  # Update UI
 #creating the inspector mode button
 
 # Infection cube colors
