@@ -5,7 +5,6 @@ import os
 from pandemic import data_unloader
 from pandemic.data_unloader import cities  # Import city data
 
-canvas = None
 window_width, window_height = 1550, 800
 # Load image
 image_path = "../pictures/world_map.png"  # Ensure correct path
@@ -282,16 +281,12 @@ def setup_buttons(event):
                            command=lambda a=action: handle_click(a))
         button.place(x=4 + x - button_width // 2, y=y - button_height // 2, width=button_width, height=button_height)
 
-setup_buttons(canvas)
-
 def setup_skip_turn_button(event):
     skip_button = tk.Button(root, text="Skip Turn", font=("Arial", 8), bg="grey30", fg="black",
                             command=lambda: handle_click("skip_turn"))
     button_width = 120
     button_height = 20
     skip_button.place(x=4 + 573 - button_width // 2, y=744 - button_height // 2, width=button_width, height=button_height)
-
-setup_skip_turn_button(canvas)
 
 outbreak_marker_id = None
 
@@ -313,8 +308,6 @@ def update_outbreak_marker():
 
     # Draw the new outbreak marker and store its ID
     outbreak_marker_id = canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill="green4", outline="black")
-
-update_outbreak_marker()
 
 cure_markers = [((695 * scale_factor) + x_offset, (1049 * scale_factor) + y_offset),
                 ((761 * scale_factor) + x_offset, (1049 * scale_factor) + y_offset),
@@ -345,8 +338,6 @@ def initialize_disease_status():
     """Draws all disease status markers at the start of the game."""
     for disease_index in range(4):  # Assuming 4 diseases
         update_disease_status(disease_index)
-
-initialize_disease_status()
 
 # Dictionary to hold loaded images
 role_images = {}
@@ -400,7 +391,6 @@ def update_player_portrait(canvas, current_player, iter):
                        (98 * scale_factor+30) + x_offset + 5, (936 * scale_factor) + y_offset + 5, fill=role_color2, outline="black")
 
 # Load images before displaying them
-load_role_images()
 #To check if the data is being updated in the cities database
 #data_unloader.print_city_data()
 
@@ -467,5 +457,12 @@ y_coord1 = (200 * scale_factor) + y_offset  # y-coordinate for center
 button1.place(x=x_coord2, y=y_coord2, anchor="center")
 button2.place(x=x_coord1, y=y_coord1, anchor="center")
 
-if __name__ == "__main__":
-    root.mainloop()
+if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
+    update_research_centers()  # Update UI
+    draw_initial_text()
+    setup_buttons(canvas)
+    setup_skip_turn_button(canvas)
+    update_outbreak_marker()
+    initialize_disease_status()
+    load_role_images()
+    
