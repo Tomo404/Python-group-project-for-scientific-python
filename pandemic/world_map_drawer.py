@@ -4,7 +4,7 @@ from PIL import Image, ImageTk
 import os
 from pandemic import data_unloader
 from pandemic import functions
-from data_unloader import cities  # Import city data
+from pandemic.data_unloader import cities  # Import city data
 
 if not os.environ.get("READTHEDOCS"):  # Only create Tk instance if not in ReadTheDocs
     root = tk.Tk()
