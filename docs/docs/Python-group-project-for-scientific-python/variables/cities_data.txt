@@ -1,0 +1,338 @@
+[
+    {
+        "name": "San Francisco",
+        "coordinates": [205, 403],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Chicago", "Los Angeles", "Manila", "Tokyo"],
+        "color": "blue"
+    },
+    {
+        "name": "Chicago",
+        "coordinates": [364, 377],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Montreal", "Atlanta", "Mexico City", "Los Angeles", "San Francisco"],
+        "color": "blue"
+    },
+    {
+        "name": "Montreal",
+        "coordinates": [427, 356],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Chicago", "New York", "Washington"],
+        "color": "blue"
+    },
+    {
+        "name": "New York",
+        "coordinates": [426, 385],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["London", "Madrid", "Washington", "Montreal"],
+        "color": "blue"
+    },
+    {
+        "name": "Washington",
+        "coordinates": [409, 397],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Montreal", "New York", "Atlanta"],
+        "color": "blue"
+    },
+    {
+        "name": "Atlanta",
+        "coordinates": [379, 426],
+        "infection_level": 0,
+        "research_center": 1, "player_amount": 0, "relations": ["Washington", "Miami", "Chicago"],
+        "color": "blue"
+    },
+    {
+        "name": "London",
+        "coordinates": [758, 314],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Essen", "Paris", "Madrid", "New York"],
+        "color": "blue"
+    },
+    {
+        "name": "Madrid",
+        "coordinates": [741, 387],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["London", "Paris", "Algiers", "Sao Paolo", "New York"],
+        "color": "blue"
+    },
+    {
+        "name": "Paris",
+        "coordinates": [769, 333],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Essen", "Milan", "Algiers", "Madrid", "London"],
+        "color": "blue"
+    },
+    {
+        "name": "Essen",
+        "coordinates": [792, 315],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["St Petersburg", "Milan", "Paris", "London"],
+        "color": "blue"
+    },
+    {
+        "name": "Milan",
+        "coordinates": [800, 355],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Essen", "Istanbul", "Paris"],
+        "color": "blue"
+    },
+    {
+        "name": "St Petersburg",
+        "coordinates": [897, 247],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Moscow", "Istanbul", "Essen"],
+        "color": "blue"
+    },
+    {
+        "name": "Los Angeles",
+        "coordinates": [226, 423],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Chicago", "Mexico City", "Sydney", "San Francisco"],
+        "color": "yellow"
+    },
+    {
+        "name": "Mexico City",
+        "coordinates": [311, 497],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Chicago", "Miami", "Bogota", "Lima", "Los Angeles"],
+        "color": "yellow"
+    },
+    {
+        "name": "Miami",
+        "coordinates": [397, 466],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Washington", "Bogota", "Mexico City", "Atlanta"],
+        "color": "yellow"
+    },
+    {
+        "name": "Bogota",
+        "coordinates": [425, 567],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Miami", "Sao Paolo", "Buenos Aires", "Lima", "Mexico City"],
+        "color": "yellow"
+    },
+    {
+        "name": "Lima",
+        "coordinates": [413, 643],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Bogota", "Santiago", "Mexico City"],
+        "color": "yellow"
+    },
+    {
+        "name": "Santiago",
+        "coordinates": [441, 749],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Lima"],
+        "color": "yellow"
+    },
+    {
+        "name": "Sao Paolo",
+        "coordinates": [549, 697],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Madrid", "Lagos", "Buenos Aires", "Bogota"],
+        "color": "yellow"
+    },
+    {
+        "name": "Buenos Aires",
+        "coordinates": [496, 754],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Sao Paolo", "Bogota"],
+        "color": "yellow"
+    },
+    {
+        "name": "Lagos",
+        "coordinates": [775, 557],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Khartoum", "Kinshasa", "Sao Paolo"],
+        "color": "yellow"
+    },
+    {
+        "name": "Kinshasa",
+        "coordinates": [829, 606],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Khartoum", "Johannesburg", "Lagos"],
+        "color": "yellow"
+    },
+    {
+        "name": "Khartoum",
+        "coordinates": [906, 515],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Johannesburg", "Kinshasa", "Lagos", "Cairo"],
+        "color": "yellow"
+    },
+    {
+        "name": "Johannesburg",
+        "coordinates": [887, 711],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Khartoum", "Kinshasa"],
+        "color": "yellow"
+    },
+    {
+        "name": "Algiers",
+        "coordinates": [773, 409],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Istanbul", "Cairo", "Madrid", "Paris"],
+        "color": "black"
+    },
+    {
+        "name": "Istanbul",
+        "coordinates": [890, 383],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["St Petersburg", "Moscow", "Baghdad", "Cairo", "Algiers", "Milan"],
+        "color": "black"
+    },
+    {
+        "name": "Cairo",
+        "coordinates": [900, 444],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Istanbul", "Baghdad", "Riyadh", "Khartoum", "Algiers"],
+        "color": "black"
+    },
+    {
+        "name": "Moscow",
+        "coordinates": [930, 283],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Tehran", "Istanbul", "St Petersburg"],
+        "color": "black"
+    },
+    {
+        "name": "Baghdad",
+        "coordinates": [960, 427],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Tehran", "Karachi", "Riyadh", "Cairo", "Istanbul"],
+        "color": "black"
+    },
+    {
+        "name": "Riyadh",
+        "coordinates": [971, 473],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Karachi", "Cairo", "Baghdad"],
+        "color": "black"
+    },
+    {
+        "name": "Tehran",
+        "coordinates": [992, 414],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Delhi", "Karachi", "Baghdad", "Moscow"],
+        "color": "black"
+    },
+    {
+        "name": "Karachi",
+        "coordinates": [1063, 471],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Delhi", "Mumbai", "Riyadh", "Baghdad", "Tehran"],
+        "color": "black"
+    },
+    {
+        "name": "Mumbai",
+        "coordinates": [1089, 499],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Delhi", "Chennai", "Karachi"],
+        "color": "black"
+    },
+    {
+        "name": "Delhi",
+        "coordinates": [1109, 452],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Kolkata", "Chennai", "Mumbai", "Karachi", "Tehran"],
+        "color": "black"
+    },
+    {
+        "name": "Chennai",
+        "coordinates": [1123, 528],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Kolkata", "Bangkok", "Jakarta", "Mumbai", "Delhi"],
+        "color": "black"
+    },
+    {
+        "name": "Kolkata",
+        "coordinates": [1159, 483],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Hong Kong", "Bangkok", "Chennai", "Delhi"],
+        "color": "black"
+    },
+    {
+        "name": "Bangkok",
+        "coordinates": [1213, 525],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Hong Kong", "Ho Chi Minh City", "Jakarta", "Chennai", "Kolkata"],
+        "color": "red"
+    },
+    {
+        "name": "Jakarta",
+        "coordinates": [1242, 616],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Sydney","Ho Chi Minh City", "Bangkok", "Chennai"],
+        "color": "red"
+    },
+    {
+        "name": "Beijing",
+        "coordinates": [1286, 390],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Seoul", "Shanghai"],
+        "color": "red"
+    },
+    {
+        "name": "Shanghai",
+        "coordinates": [1309, 439],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Seoul", "Tokyo", "Hong Kong", "Beijing"],
+        "color": "red"
+    },
+    {
+        "name": "Hong Kong",
+        "coordinates": [1275, 484],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Taipei", "Manila", "Ho Chi Minh City", "Bangkok", "Kolkata", "Shanghai"],
+        "color": "red"
+    },
+    {
+        "name": "Ho Chi Minh City",
+        "coordinates": [1241, 540],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Hong Kong", "Manila", "Jakarta", "Bangkok"],
+        "color": "red"
+    },
+    {
+        "name": "Seoul",
+        "coordinates": [1334, 405],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Tokyo", "Shanghai", "Beijing"],
+        "color": "red"
+    },
+    {
+        "name": "Taipei",
+        "coordinates": [1308, 471],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Osaka", "Manila", "Hong Kong", "Shanghai"],
+        "color": "red"
+    },
+    {
+        "name": "Manila",
+        "coordinates": [1306, 520],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["San Francisco", "Sydney", "Ho Chi Minh City", "Hong Kong", "Taipei"],
+        "color": "red"
+    },
+    {
+        "name": "Sydney",
+        "coordinates": [1443, 751],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Los Angeles", "Jakarta", "Manila"],
+        "color": "red"
+    },
+    {
+        "name": "Tokyo",
+        "coordinates": [1391, 415],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["San Francisco", "Osaka", "Shanghai", "Seoul"],
+        "color": "red"
+    },
+    {
+        "name": "Osaka",
+        "coordinates": [1371, 420],
+        "infection_level": 0,
+        "research_center": 0, "player_amount": 0, "relations": ["Taipei", "Tokyo"],
+        "color": "red"
+    }
+]

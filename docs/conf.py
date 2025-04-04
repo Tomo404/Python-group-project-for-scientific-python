@@ -1,8 +1,8 @@
 import os
 import sys
 
-# Add project root directory to sys.path so Sphinx can find the pandemic module
-sys.path.insert(0, os.path.abspath(".."))
+
+sys.path.insert(0, os.path.abspath('../pandemic'))
 
 # -- Project information -----------------------------------------------------
 project = 'pandemic'
@@ -17,9 +17,11 @@ extensions = [
     'sphinx.ext.viewcode'   # Add links to highlighted source code
 ]
 
+autodoc_mock_imports = ["data_unloader"]
+
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = 'alabaster'
-html_static_path = ['_static']
+html_static_path = ['docs/build/_static']

@@ -1,0 +1,7 @@
+nem\_fontos\_masolat module
+===========================
+
+.. automodule:: nem_fontos_masolat
+   :members:
+   :show-inheritance:
+   :undoc-members:
