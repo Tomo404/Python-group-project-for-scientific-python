@@ -44,7 +44,7 @@ documentation for details.
    :show-inheritance:
    :no-index:
 
-.. image:: pictures/medic.png
-.. image:: pictures/scientist.png
-.. image:: pictures/operations_expert.png
-.. image:: pictures/quarantine_specialist.png
+.. image:: docs/Python-group-project-for-scientific-python/docs/pictures/medic.png
+.. image:: docs/Python-group-project-for-scientific-python/docs/pictures/scientist.png
+.. image:: docs/Python-group-project-for-scientific-python/docs/pictures/operations_expert.png
+.. image:: docs/Python-group-project-for-scientific-python/docs/pictures/quarantine_specialist.png
