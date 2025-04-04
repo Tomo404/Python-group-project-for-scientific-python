@@ -2,8 +2,8 @@ import tkinter as tk
 from PIL import Image, ImageTk
 
 import os
-import data_unloader
-import functions
+from pandemic import data_unloader
+from pandemic import functions
 from data_unloader import cities  # Import city data
 
 if not os.environ.get("READTHEDOCS"):  # Only create Tk instance if not in ReadTheDocs
