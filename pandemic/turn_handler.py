@@ -1,7 +1,7 @@
 from pandemic import data_unloader
 from pandemic import functions
 from pandemic import world_map_drawer
-from world_map_drawer import canvas
+from pandemic.world_map_drawer import canvas
 
 players = data_unloader.in_game_roles  # List of player roles
 game_over = False  # Tracks if the game is over
