@@ -1,7 +1,7 @@
 data\_unloader module
 =====================
 
-.. automodule:: data_unloader
+.. automodule:: pandemic.data_unloader
    :members:
    :show-inheritance:
    :undoc-members:
