@@ -15,7 +15,27 @@ documentation for details.
    :maxdepth: 2
    :caption: Contents:
 
+   pandemic.data_unloader
+   pandemic.world_map_drawer
+   pandemic.functions
+   pandemic.turn_handler
+
+.. automodule:: pandemic.data_unloader
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: pandemic.world_map_drawer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. automodule:: pandemic.functions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: pandemic.turn_handler
    :members:
    :undoc-members:
    :show-inheritance:
