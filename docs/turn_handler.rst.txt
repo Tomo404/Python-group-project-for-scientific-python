@@ -1,7 +1,7 @@
 turn\_handler module
 ====================
 
-.. automodule:: pandemic.turn_handler
+.. automodule:: turn_handler
    :members:
    :show-inheritance:
    :undoc-members:

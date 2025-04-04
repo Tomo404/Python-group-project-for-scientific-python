@@ -1,7 +1,7 @@
 functions module
 ================
 
-.. automodule:: pandemic.functions
+.. automodule:: functions
    :members:
    :show-inheritance:
    :undoc-members:
