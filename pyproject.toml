@@ -16,7 +16,8 @@ authors = [
 ]
 dependencies = [
   "sphinx",
-  "sphinx-rtd-theme"
+  "sphinx-rtd-theme",
+  "Pillow"
 ]
 
 [tool.setuptools]
