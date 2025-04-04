@@ -1,12 +1,13 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 
+import os
 import data_unloader
 import functions
 from data_unloader import cities  # Import city data
 
-# Initialize Tkinter
-root = tk.Tk()
+if not os.environ.get("READTHEDOCS"):  # Only create Tk instance if not in ReadTheDocs
+    root = tk.Tk()
 root.title("Pandemic Game Map")
 
 # Window size

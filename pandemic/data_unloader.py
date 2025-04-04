@@ -1,5 +1,6 @@
 import json
 import random
+import os
 
 def load_cities():
     """Loads and formats city data from the file."""
@@ -67,6 +68,11 @@ infection_discard = []  # Discard pile for used infection cards
 def set_game_settings():
     """Asks for player count and epidemic cards with validation."""
     global players, epidemic_cards
+
+    if not os.environ.get("READTHEDOCS"):
+        players = int(input("How many players? (2-4): "))
+    else:
+        players = 2  # Set a default value for documentation
 
     # Validate player count (between 2 and 4)
     while True:
