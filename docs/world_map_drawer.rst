@@ -5,3 +5,4 @@ world\_map\_drawer module
    :members:
    :show-inheritance:
    :undoc-members:
+   :no-index:
