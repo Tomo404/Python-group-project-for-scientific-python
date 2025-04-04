@@ -3,12 +3,7 @@
 
 # Required
 version: 2
-python:
-  version: "3"  # or whatever version you are using
-  install:
-    - method: pip
-      path: .
-    - requirements: requirements.txt
+
 
 # Set the OS, Python version, and other tools you might need
 build:
