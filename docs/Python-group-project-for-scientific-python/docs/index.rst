@@ -24,18 +24,22 @@ documentation for details.
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
 
 .. automodule:: pandemic.world_map_drawer
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
 
 .. automodule:: pandemic.functions
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
 
 .. automodule:: pandemic.turn_handler
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
