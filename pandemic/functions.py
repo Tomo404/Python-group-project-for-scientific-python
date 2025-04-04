@@ -59,7 +59,7 @@ def play_event_card() -> None:
 
 def skip_turn() -> None:
     """Skip the current player's turn."""
-        if data_unloader.actions != 0:
+    if data_unloader.actions != 0:
         data_unloader.actions = 0
         print("Turn skipped!")
         drawing_phase()
