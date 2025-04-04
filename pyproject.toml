@@ -15,7 +15,8 @@ authors = [
   { name = "Tolvaj Tamás", email = "tolvaktomi@gmail.com" }
 ]
 dependencies = [
-  "random"
+  "sphinx",
+  "sphinx-rtd-theme"
 ]
 
 [tool.setuptools]
