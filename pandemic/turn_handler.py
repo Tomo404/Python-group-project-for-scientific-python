@@ -1,6 +1,6 @@
-from . import data_unloader
-import functions
-import world_map_drawer
+from pandemic import data_unloader
+from pandemic import functions
+from pandemic import world_map_drawer
 from world_map_drawer import canvas
 
 players = data_unloader.in_game_roles  # List of player roles
