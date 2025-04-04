@@ -1,4 +1,4 @@
-import data_unloader
+from . import data_unloader
 import functions
 import world_map_drawer
 from world_map_drawer import canvas
