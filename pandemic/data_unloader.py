@@ -1,5 +1,6 @@
 import json
 import random
+import os
 
 def load_cities():
     """Loads and formats city data from the file."""
@@ -67,6 +68,9 @@ infection_discard = []  # Discard pile for used infection cards
 def set_game_settings():
     """Asks for player count and epidemic cards with validation."""
     global players, epidemic_cards
+
+    if "SPHINX_BUILD" in os.environ:
+        return  # Skip user input when building docs
 
     # Validate player count (between 2 and 4)
     while True:
