@@ -17,6 +17,8 @@ extensions = [
     'sphinx.ext.viewcode'   # Add links to highlighted source code
 ]
 
+autodoc_mock_imports = ["data_unloader"]
+
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
