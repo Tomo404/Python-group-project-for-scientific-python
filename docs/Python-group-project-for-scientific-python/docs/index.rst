@@ -43,3 +43,8 @@ documentation for details.
    :undoc-members:
    :show-inheritance:
    :no-index:
+
+.. image:: pictures/medic.png
+.. image:: pictures/scientist.png
+.. image:: pictures/operations_expert.png
+.. image:: pictures/quarantine_specialist.png
