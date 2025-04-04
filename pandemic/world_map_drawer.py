@@ -6,9 +6,9 @@ from pandemic import data_unloader
 from pandemic import functions
 from pandemic.data_unloader import cities  # Import city data
 
-if not os.environ.get("READTHEDOCS"):  # Only create Tk instance if not in ReadTheDocs
+if __name__ == "__main__":
     root = tk.Tk()
-root.title("Pandemic Game Map")
+    root.title("Pandemic Game Map")
 
 # Window size
 window_width, window_height = 1550, 800
