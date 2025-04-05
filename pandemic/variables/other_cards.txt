@@ -1,0 +1,332 @@
+[
+    {
+      "cardtype": "city_card",
+      "name": "San Francisco",
+      "coordinates": [205, 403],
+      "color": "blue"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Chicago",
+      "coordinates": [364, 377],
+      "color": "blue"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Montreal",
+      "coordinates": [427, 356],
+      "color": "blue"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "New York",
+      "coordinates": [426, 385],
+      "color": "blue"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Washington",
+      "coordinates": [409, 397],
+      "color": "blue"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Atlanta",
+      "coordinates": [379, 426],
+      "color": "blue"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "London",
+      "coordinates": [758, 314],
+      "color": "blue"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Madrid",
+      "coordinates": [741, 387],
+      "color": "blue"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Paris",
+      "coordinates": [769, 333],
+      "color": "blue"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Essen",
+      "coordinates": [792, 315],
+      "color": "blue"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Milan",
+      "coordinates": [800, 355],
+      "color": "blue"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "St Petersburg",
+      "coordinates": [897, 247],
+      "color": "blue"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Los Angeles",
+      "coordinates": [226, 423],
+      "color": "yellow"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Mexico City",
+      "coordinates": [311, 497],
+      "color": "yellow"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Miami",
+      "coordinates": [397, 466],
+      "color": "yellow"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Bogota",
+      "coordinates": [425, 567],
+      "color": "yellow"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Lima",
+      "coordinates": [413, 643],
+      "color": "yellow"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Santiago",
+      "coordinates": [441, 749],
+      "color": "yellow"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Sao Paolo",
+      "coordinates": [549, 697],
+      "color": "yellow"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Buenos Aires",
+      "coordinates": [496, 754],
+      "color": "yellow"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Lagos",
+      "coordinates": [775, 557],
+      "color": "yellow"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Kinshasa",
+      "coordinates": [829, 606],
+      "color": "yellow"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Khartoum",
+      "coordinates": [906, 515],
+      "color": "yellow"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Johannesburg",
+      "coordinates": [887, 711],
+      "color": "yellow"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Algiers",
+      "coordinates": [773, 409],
+      "color": "black"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Istanbul",
+      "coordinates": [890, 383],
+      "color": "black"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Cairo",
+      "coordinates": [900, 444],
+      "color": "black"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Moscow",
+      "coordinates": [930, 283],
+      "color": "black"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Baghdad",
+      "coordinates": [960, 427],
+      "color": "black"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Riyadh",
+      "coordinates": [971, 473],
+      "color": "black"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Tehran",
+      "coordinates": [992, 414],
+      "color": "black"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Karachi",
+      "coordinates": [1063, 471],
+      "color": "black"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Mumbai",
+      "coordinates": [1089, 499],
+      "color": "black"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Delhi",
+      "coordinates": [1109, 452],
+      "color": "black"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Chennai",
+      "coordinates": [1123, 528],
+      "color": "black"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Kolkata",
+      "coordinates": [1159, 483],
+      "color": "black"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Bangkok",
+      "coordinates": [1213, 525],
+      "color": "red"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Jakarta",
+      "coordinates": [1242, 616],
+      "color": "red"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Beijing",
+      "coordinates": [1286, 390],
+      "color": "red"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Shanghai",
+      "coordinates": [1309, 439],
+      "color": "red"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Hong Kong",
+      "coordinates": [1275, 484],
+      "color": "red"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Ho Chi Minh City",
+      "coordinates": [1241, 540],
+      "color": "red"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Seoul",
+      "coordinates": [1334, 405],
+      "color": "red"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Taipei",
+      "coordinates": [1308, 471],
+      "color": "red"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Manila",
+      "coordinates": [1306, 520],
+      "color": "red"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Sydney",
+      "coordinates": [1443, 751],
+      "color": "red"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Tokyo",
+      "coordinates": [1391, 415],
+      "color": "red"
+    },
+    {
+      "cardtype": "city_card",
+      "name": "Osaka",
+      "coordinates": [1371, 420],
+      "color": "red"
+    },
+    {
+      "cardtype": "event_card",
+      "name": "Remote Treatment",
+      "effect": "Remove 2 disease cubes from the board.",
+      "active": 0
+    },
+    {
+      "cardtype": "event_card",
+      "name": "Mobile Hospital",
+      "effect": "This turn, remove 1 disease cube from each city the player Drives/Ferries to.",
+      "active": 0
+    },
+    {
+      "cardtype": "event_card",
+      "name": "Borrowed Time",
+      "effect": "Take 2 extra actions this turn.",
+      "active": 0
+    },
+    {
+      "cardtype": "event_card",
+      "name": "Government Grant",
+      "effect": "Add 1 research station to any city (no city card needed).",
+      "active": 0
+    },
+    {
+      "cardtype": "event_card",
+      "name": "Infection Zone Ban",
+      "effect": "Ignore all chain reaction outbreaks until the player's next turn begins.",
+      "active": 0
+    },
+    {
+      "cardtype": "event_card",
+      "name": "Improved Sanitation",
+      "effect": "Treat disease removes 1 more cube of the same color, if present, until the player's next turn begins.",
+      "active": 0
+    },
+    {
+      "cardtype": "event_card",
+      "name": "One Quiet Night",
+      "effect": "Skip the next infect cities step (Do not flip over any infection cards).",
+      "active": 0
+    }
+]
