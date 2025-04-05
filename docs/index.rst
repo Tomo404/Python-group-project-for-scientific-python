@@ -20,7 +20,7 @@ documentation for details.
    functions
    turn_handler
    modules
-   docs/extra_index
+   docs/Python-group-project-for-scientific-python/docs/extra_index
 
 .. automodule:: data_unloader
    :members:
