@@ -19,6 +19,7 @@ documentation for details.
    world_map_drawer
    functions
    turn_handler
+   source/modules
 
 .. automodule:: data_unloader
    :members:
