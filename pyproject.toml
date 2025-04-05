@@ -24,4 +24,4 @@ dependencies = [
 packages = ["pandemic"]
 
 [tool.setuptools.package-data]
-pandemic = ["../pictures/*.png", "../variables/*.txt"]
+pandemic = ["pictures/*.png", "variables/*.txt"]
