@@ -1,7 +1,7 @@
-pandemic
-========
+Pandemic Package
+================
 
-.. toctree::
-   :maxdepth: 4
-
-   pandemic
+.. automodule:: pandemic
+   :members:
+   :undoc-members:
+   :show-inheritance:
