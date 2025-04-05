@@ -20,7 +20,7 @@ documentation for details.
    functions
    turn_handler
    modules
-   extra_index
+   docs/extra_index
 
 .. automodule:: data_unloader
    :members:
