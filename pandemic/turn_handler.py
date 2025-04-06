@@ -1,7 +1,12 @@
 from pandemic import data_unloader
 from pandemic import functions
 from pandemic import world_map_drawer
+import os
+import sys
 
+BUILDING_DOCS = os.environ.get("READTHEDOCS") == "True" or "sphinx" in sys.modules
+if not BUILDING_DOCS:
+    root = world_map_drawer.root
 players = data_unloader.in_game_roles
 game_over = False
 current_player_index = 0
