@@ -64,7 +64,7 @@ def skip_turn() -> None:
         print("Turn skipped!")
         drawing_phase()
 
-def action_phase(player: Any) -> None:
+def action_phase() -> None:
     """
     Execute the action phase for the given player.
 
@@ -75,7 +75,7 @@ def action_phase(player: Any) -> None:
     print("Player X's action phase begins.")
     # TODO: Implement action loop
 
-def drawing_phase(player: Any) -> None:
+def drawing_phase() -> None:
     """
     Execute the drawing phase for the given player.
 
@@ -85,7 +85,7 @@ def drawing_phase(player: Any) -> None:
     print("Player X's drawing phase begins.")
     # TODO: Handle drawing logic and epidemic card
 
-def infection_phase(player: Any) -> None:
+def infection_phase() -> None:
     """
     Execute the infection phase for the given player.
 
