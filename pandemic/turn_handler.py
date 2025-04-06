@@ -1,7 +1,6 @@
 from pandemic import data_unloader
 from pandemic import functions
 from pandemic import world_map_drawer
-from pandemic.world_map_drawer import root  # get these from the module
 
 players = data_unloader.in_game_roles
 game_over = False
@@ -52,7 +51,7 @@ def next_turn():
     current_city = data_unloader.players_locations[player_id]
     world_map_drawer.update_player_marker(player_id, current_city)
     current_player_index = (current_player_index + 1) % len(players)
-    root.after(data_unloader.actions * 90000, next_turn)
+    world_map_drawer.root.after(data_unloader.actions * 90000, next_turn)
 
 ### --- ✅ INITIALIZE EVERYTHING --- ###
 
@@ -62,7 +61,7 @@ world_map_drawer.create_window()  # creates root and canvas
 # Ensure the background image is drawn (make sure world_map_drawer.create_window() does it)
 # If not, call world_map_drawer.draw_map_background() or similar manually
 
-root.after(0, lambda: world_map_drawer.start_gui(next_turn))
+world_map_drawer.root.after(0, lambda: world_map_drawer.start_gui(next_turn))
 
 # Start the Tkinter mainloop
-root.mainloop()
+world_map_drawer.root.mainloop()
