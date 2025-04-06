@@ -9,6 +9,8 @@ import sys
 
 BUILDING_DOCS = os.environ.get("READTHEDOCS") == "True" or "sphinx" in sys.modules
 scale_factor = 1
+x_offset = 1
+y_offset = 1
 if not BUILDING_DOCS:
     root = tk.Tk()
     window_width, window_height = 1550, 800
