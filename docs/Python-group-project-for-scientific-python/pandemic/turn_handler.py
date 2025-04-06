@@ -1,13 +1,12 @@
-import data_unloader
-import functions
-import world_map_drawer
-from world_map_drawer import canvas
+from pandemic import data_unloader
+from pandemic import functions
+from pandemic import world_map_drawer
+from pandemic.world_map_drawer import canvas, root  # get these from the module
 
-players = data_unloader.in_game_roles  # List of player roles
-game_over = False  # Tracks if the game is over
-current_player_index = 0  # Tracks the current player's turn
+players = data_unloader.in_game_roles
+game_over = False
+current_player_index = 0
 
-# checks which button was clicked and calls it accordingly
 def check_button_click():
     match True:
         case world_map_drawer.handle_click("drive_ferry"):
@@ -34,45 +33,36 @@ def check_button_click():
             print("Unknown button clicked!")
 
 def check_game_over():
-    """Checks if the game is over due to player deck depletion or outbreak limit."""
     global game_over
     if len(data_unloader.player_deck) < 2 or data_unloader.outbreak_marker == 8:
         game_over = True
-        world_map_drawer.update_game_text("Game Over!")  # Display game over message
-        return True  # Indicate that the game is over
+        world_map_drawer.update_game_text("Game Over!")
+        return True
     return False
 
 def next_turn():
-    """Handles the turn logic and schedules the next turn dynamically."""
     global current_player_index
-
     if check_game_over():
-        return  # Stop if the game is over
+        return
 
     player_id = current_player_index
     player_role = players[player_id]
-
-    # Update UI
     world_map_drawer.update_player_portrait(canvas, player_role, player_id + 1)
     world_map_drawer.update_game_text(f"{player_role}'s turn")
-
-    # Get the current city of the player
     current_city = data_unloader.players_locations[player_id]
     world_map_drawer.update_player_marker(player_id, current_city)
-
-    # Call phases
-    # functions.action_phase(player_id)
-    # functions.drawing_phase(player_id)
-    # functions.infection_phase(player_id)
-
-    # Move to the next player's turn
     current_player_index = (current_player_index + 1) % len(players)
+    root.after(data_unloader.actions * 90000, next_turn)
 
-    # Schedule the next turn after a delay (e.g., 1000 ms = 1 second, 1 action ~ 90 seconds)
-    world_map_drawer.root.after(data_unloader.actions * 90000, next_turn)
+### --- ✅ INITIALIZE EVERYTHING --- ###
 
-# Start the game loop by calling next_turn once
-world_map_drawer.root.after(1000, next_turn)
+world_map_drawer.create_window()  # creates root and canvas
+# Draw the background, buttons, cities, infection markers, and portraits
 
-# Start the Tkinter event loop
-world_map_drawer.root.mainloop()
+# Ensure the background image is drawn (make sure world_map_drawer.create_window() does it)
+# If not, call world_map_drawer.draw_map_background() or similar manually
+
+root.after(0, lambda: world_map_drawer.start_gui(next_turn))
+
+# Start the Tkinter mainloop
+root.mainloop()
