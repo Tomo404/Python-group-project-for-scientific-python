@@ -59,14 +59,14 @@ def next_turn():
     world_map_drawer.root.after(data_unloader.actions * 90000, next_turn)
 
 ### --- ✅ INITIALIZE EVERYTHING --- ###
+if not BUILDING_DOCS:
+    world_map_drawer.create_window()  # creates root and canvas
+    # Draw the background, buttons, cities, infection markers, and portraits
 
-world_map_drawer.create_window()  # creates root and canvas
-# Draw the background, buttons, cities, infection markers, and portraits
+    # Ensure the background image is drawn (make sure world_map_drawer.create_window() does it)
+    # If not, call world_map_drawer.draw_map_background() or similar manually
 
-# Ensure the background image is drawn (make sure world_map_drawer.create_window() does it)
-# If not, call world_map_drawer.draw_map_background() or similar manually
+    world_map_drawer.root.after(0, lambda: world_map_drawer.start_gui(next_turn))
 
-world_map_drawer.root.after(0, lambda: world_map_drawer.start_gui(next_turn))
-
-# Start the Tkinter mainloop
-world_map_drawer.root.mainloop()
+    # Start the Tkinter mainloop
+    world_map_drawer.root.mainloop()
