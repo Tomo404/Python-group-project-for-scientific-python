@@ -69,28 +69,29 @@ def set_game_settings():
     """Asks for player count and epidemic cards with validation."""
     global players, epidemic_cards
 
-    if "SPHINX_BUILD" in os.environ:
-        return  # Skip user input when building docs
+    if not os.environ.get("READTHEDOCS"):
+            # Validate player count (between 2 and 4)
+        while True:
+            try:
+                players = int(input("How many players? (2-4): "))
+                if 2 <= players <= 4:
+                    break  # Valid input, exit loop
+                print("❌ Invalid input! Please enter a number between 2 and 4.")
+            except ValueError:
+                print("❌ Invalid input! Please enter a valid number.")
 
-    # Validate player count (between 2 and 4)
-    while True:
-        try:
-            players = int(input("How many players? (2-4): "))
-            if 2 <= players <= 4:
-                break  # Valid input, exit loop
-            print("❌ Invalid input! Please enter a number between 2 and 4.")
-        except ValueError:
-            print("❌ Invalid input! Please enter a valid number.")
-
-    # Validate epidemic card count (4 to 6)
-    while True:
-        try:
-            epidemic_cards = int(input("Choose difficulty: [easy: 4] [medium: 5] [heroic: 6]: "))
-            if 4 <= epidemic_cards <= 6:
-                break
-            print("❌ Invalid input! Please enter 4, 5, or 6.")
-        except ValueError:
-            print("❌ Invalid input! Please enter a valid number.")
+            # Validate epidemic card count (4 to 6)
+        while True:
+            try:
+                epidemic_cards = int(input("Choose difficulty: [easy: 4] [medium: 5] [heroic: 6]: "))
+                if 4 <= epidemic_cards <= 6:
+                    break
+                print("❌ Invalid input! Please enter 4, 5, or 6.")
+            except ValueError:
+                print("❌ Invalid input! Please enter a valid number.")
+    else:
+        epidemic_cards = 4 # Set a default value for documentation
+        players = 2 # Set a default value for documentation
 
     print(f"✅ Game settings: {players} players, {epidemic_cards} epidemic cards.")
 
