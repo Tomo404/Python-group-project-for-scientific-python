@@ -268,6 +268,8 @@ def handle_click(action):
     import functions
     if action in functions.__dict__:
         functions.__dict__[action]()  # Calls the function dynamically
+    elif action in globals():
+        globals()[action]()
     else:
         print(f"Action '{action}' not found in functions.")
 
