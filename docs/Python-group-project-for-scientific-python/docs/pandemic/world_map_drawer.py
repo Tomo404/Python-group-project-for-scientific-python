@@ -268,8 +268,6 @@ def handle_click(action):
     import functions
     if action in functions.__dict__:
         functions.__dict__[action]()  # Calls the function dynamically
-    elif action in globals():
-        globals()[action]()
     else:
         print(f"Action '{action}' not found in functions.")
 
@@ -279,7 +277,7 @@ def setup_buttons(event):
         button_height = 20  # Approximate height of the buttons
 
         buttons = [
-            ("Drive/Ferry", 440, 625, "setup_drive_ferry_popup"),
+            ("Drive/Ferry", 440, 625, "drive_ferry"),
             ("Direct Flight", 440, 647, "direct_flight"),
             ("Charter Flight", 440, 669, "charter_flight"),
             ("Shuttle Flight", 440, 691, "shuttle_flight"),
@@ -305,30 +303,6 @@ def setup_skip_turn_button(event):
 
 outbreak_marker_id = None
 outbreak_marker = 0
-
-def setup_drive_ferry_popup():
-    """Popup ablak szomszédos város kiválasztására Drive/Ferry mozgáshoz."""
-    from tkinter import Toplevel, Label, Button
-
-    popup = Toplevel(root)
-    popup.title("Drive/Ferry - Válassz célvárost")
-    popup.geometry("300x200")
-
-    player_id = current_playerturn
-    current_city = data_unloader.players_locations[player_id]
-    neighbors = data_unloader.cities[current_city]["relations"]
-
-    Label(popup, text=f"Innen indulsz: {current_city}", font=("Arial", 10, "bold")).pack(pady=5)
-    Label(popup, text="Válaszd ki, hova akarsz menni:", font=("Arial", 10)).pack()
-
-    for city in neighbors:
-        Button(
-            popup,
-            text=city,
-            width=25,
-            command=lambda c=city: [popup.destroy(), functions.drive_ferry(c)]
-        ).pack(pady=3)
-
 
 def update_outbreak_marker():
     if not BUILDING_DOCS:

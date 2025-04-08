@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pandemic_scipy"
+version = "0.1.0"
+description = "A Python simulation package for pandemic game logic"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+  { name = "Bartha Lilla", email = "barthalilla1@gmail.com" },
+  { name = "Kerényi Kornél", email = "kerenyikornel@gmail.com" },
+  { name = "Tolvaj Tamás", email = "tolvaktomi@gmail.com" }
+]
+dependencies = [
+  "sphinx",
+  "sphinx-rtd-theme",
+  "Pillow"
+]
+
+[tool.setuptools]
+packages = ["pandemic"]
+
+[tool.setuptools.package-data]
+pandemic = ["pictures/*.png", "variables/*.txt"]

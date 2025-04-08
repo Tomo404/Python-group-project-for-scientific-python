@@ -1,0 +1,194 @@
+[
+  {
+    "name": "San Francisco",
+    "infection_color": "blue"
+  },
+  {
+    "name": "Chicago",
+    "infection_color": "blue"
+  },
+  {
+    "name": "Montreal",
+    "infection_color": "blue"
+  },
+  {
+    "name": "New York",
+    "infection_color": "blue"
+  },
+  {
+    "name": "Washington",
+    "infection_color": "blue"
+  },
+  {
+    "name": "Atlanta",
+    "infection_color": "blue"
+  },
+  {
+    "name": "London",
+    "infection_color": "blue"
+  },
+  {
+    "name": "Madrid",
+    "infection_color": "blue"
+  },
+  {
+    "name": "Paris",
+    "infection_color": "blue"
+  },
+  {
+    "name": "Essen",
+    "infection_color": "blue"
+  },
+  {
+    "name": "Milan",
+    "infection_color": "blue"
+  },
+  {
+    "name": "St Petersburg",
+    "infection_color": "blue"
+  },
+  {
+    "name": "Los Angeles",
+    "infection_color": "yellow"
+  },
+  {
+    "name": "Mexico City",
+    "infection_color": "yellow"
+  },
+  {
+    "name": "Miami",
+    "infection_color": "yellow"
+  },
+  {
+    "name": "Bogota",
+    "infection_color": "yellow"
+  },
+  {
+    "name": "Lima",
+    "infection_color": "yellow"
+  },
+  {
+    "name": "Santiago",
+    "infection_color": "yellow"
+  },
+  {
+    "name": "Sao Paolo",
+    "infection_color": "yellow"
+  },
+  {
+    "name": "Buenos Aires",
+    "infection_color": "yellow"
+  },
+  {
+    "name": "Lagos",
+    "infection_color": "yellow"
+  },
+  {
+    "name": "Kinshasa",
+    "infection_color": "yellow"
+  },
+  {
+    "name": "Khartoum",
+    "infection_color": "yellow"
+  },
+  {
+    "name": "Johannesburg",
+    "infection_color": "yellow"
+  },
+  {
+    "name": "Algiers",
+    "infection_color": "black"
+  },
+  {
+    "name": "Istanbul",
+    "infection_color": "black"
+  },
+  {
+    "name": "Cairo",
+    "infection_color": "black"
+  },
+  {
+    "name": "Moscow",
+    "infection_color": "black"
+  },
+  {
+    "name": "Baghdad",
+    "infection_color": "black"
+  },
+  {
+    "name": "Riyadh",
+    "infection_color": "black"
+  },
+  {
+    "name": "Tehran",
+    "infection_color": "black"
+  },
+  {
+    "name": "Karachi",
+    "infection_color": "black"
+  },
+  {
+    "name": "Mumbai",
+    "infection_color": "black"
+  },
+  {
+    "name": "Delhi",
+    "infection_color": "black"
+  },
+  {
+    "name": "Chennai",
+    "infection_color": "black"
+  },
+  {
+    "name": "Kolkata",
+    "infection_color": "black"
+  },
+  {
+    "name": "Bangkok",
+    "infection_color": "red"
+  },
+  {
+    "name": "Jakarta",
+    "infection_color": "red"
+  },
+  {
+    "name": "Beijing",
+    "infection_color": "red"
+  },
+  {
+    "name": "Shanghai",
+    "infection_color": "red"
+  },
+  {
+    "name": "Hong Kong",
+    "infection_color": "red"
+  },
+  {
+    "name": "Ho Chi Minh City",
+    "infection_color": "red"
+  },
+  {
+    "name": "Seoul",
+    "infection_color": "red"
+  },
+  {
+    "name": "Taipei",
+    "infection_color": "red"
+  },
+  {
+    "name": "Manila",
+    "infection_color": "red"
+  },
+  {
+    "name": "Sydney",
+    "infection_color": "red"
+  },
+  {
+    "name": "Tokyo",
+    "infection_color": "red"
+  },
+  {
+    "name": "Osaka",
+    "infection_color": "red"
+  }
+]
