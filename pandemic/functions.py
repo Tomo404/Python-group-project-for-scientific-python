@@ -1,9 +1,31 @@
 from . import world_map_drawer
 from typing import Any
 
-def drive_ferry() -> None:
-    """Perform the Drive/Ferry action."""
-    print("Drive/Ferry action triggered!")
+from pandemic import data_unloader, world_map_drawer
+
+
+def drive_ferry(destination: str) -> None:
+    """
+    Perform the Drive/Ferry action.
+
+    This action moves the current player to an adjacent city
+    without discarding any cards.
+    """
+    if not world_map_drawer.can_perform_action():
+        return
+
+    player_id = world_map_drawer.current_playerturn
+    current_city = data_unloader.players_locations[player_id]
+    neighbors = data_unloader.cities[current_city]["relations"]
+
+    if destination in neighbors:
+        data_unloader.players_locations[player_id] = destination
+        world_map_drawer.update_player_marker(player_id, destination)
+        world_map_drawer.update_game_text(
+            f"Player {player_id + 1} moved from {current_city} to {destination} via Drive/Ferry.")
+    else:
+        print(f"Cannot move to {destination}. It is not adjacent to {current_city}.")
+
 
 def direct_flight() -> None:
     """Perform the Direct Flight action."""
