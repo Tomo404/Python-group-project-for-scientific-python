@@ -49,6 +49,7 @@ def next_turn():
     if check_game_over():
         return
 
+    functions.reset_card_draws()
     player_id = current_player_index
     player_role = players[player_id]
     world_map_drawer.update_player_portrait(world_map_drawer.canvas, player_role, player_id + 1)

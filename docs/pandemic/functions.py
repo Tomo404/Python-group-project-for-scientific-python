@@ -4,13 +4,14 @@ from typing import Any
 
 # Define global variables to track remaining cards and actions
 remaining_player_cards = 2  # The number of player cards to draw (fixed)
-remaining_infection_cards = 4  # This depends on the infection rate (can be dynamic)
+remaining_infection_cards = 2  # This depends on the infection rate (can be dynamic)
 
 # Function to reset the card draws at the start of each phase
 def reset_card_draws():
     global remaining_player_cards, remaining_infection_cards
     remaining_player_cards = 2  # Reset player card draws (fixed)
     remaining_infection_cards = data_unloader.infection_rate_marker_amount[data_unloader.infection_rate_marker]  # Set infection card draws based on infection rate
+    data_unloader.actions = 4
 
 def drive_ferry() -> None:
     if world_map_drawer.can_perform_action():
@@ -61,19 +62,7 @@ def skip_turn() -> None:
     """Skip the current player's turn."""
     if data_unloader.actions != 0:
         data_unloader.actions = 0
-        print("Turn skipped!")
-        drawing_phase()
-
-def action_phase() -> None:
-    """
-    Execute the action phase for the given player.
-
-    Args:
-        player (Any): The current player object.
-    """
-    data_unloader.actions = 4
-    print("Player X's action phase begins.")
-    # TODO: Implement action loop
+    print("Turn skipped!")
 
 def drawing_phase() -> None:
     """
@@ -95,13 +84,29 @@ def infection_phase() -> None:
     print("Player X's infection phase begins.")
     # TODO: Skip if prevention card played
 
+playercards_drawn = 0
 def draw_player_card() -> None:
     """Draw a player card for the current player."""
-    drawing_phase()
+    global playercards_drawn
+    if playercards_drawn<remaining_player_cards:
+        drawing_phase()
+        playercards_drawn += 1
+        print("Drawing playercard!")
+    else:
+        print("No more cards to draw!")
+
+infectioncards_drawn = 0
 
 def draw_infection_card() -> None:
     """Draw an infection card for the current player."""
-    infection_phase()
+    global infectioncards_drawn
+    if infectioncards_drawn < remaining_infection_cards:
+        infection_phase()
+        infectioncards_drawn += 1
+        print("Drawing infectioncard!")
+    else:
+        print("End of turn!")
+        transition_to_next_phase()
 
 # Call this function before transitioning to a new phase
 def transition_to_next_phase():
