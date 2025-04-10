@@ -329,6 +329,32 @@ def setup_drive_ferry_popup():
             command=lambda c=city: [popup.destroy(), functions.drive_ferry(c)]
         ).pack(pady=3)
 
+def setup_direct_flight_popup():
+    """Popup ablak, ahol a játékos kiválaszthatja a kezében lévő városkártyát."""
+    from tkinter import Toplevel, Label, Button
+
+    popup = Toplevel(root)
+    popup.title("Direct Flight – Válassz célvárost")
+    popup.geometry("300x250")
+
+    player_id = current_playerturn
+    hand = data_unloader.players_hands[player_id]
+
+    # Csak városkártyák (nem event)
+    city_cards = [card["name"] for card in hand if "coordinates" in card]
+
+    Label(popup, text="Válassz egy várost a kezedből:", font=("Arial", 10, "bold")).pack(pady=5)
+
+    for city in city_cards:
+        Button(
+            popup,
+            text=city,
+            width=25,
+            command=lambda c=city: [popup.destroy(), functions.direct_flight_to(c)]
+        ).pack(pady=3)
+
+    if not city_cards:
+        Label(popup, text="Nincs városkártyád!", fg="red").pack(pady=10)
 
 def update_outbreak_marker():
     if not BUILDING_DOCS:
