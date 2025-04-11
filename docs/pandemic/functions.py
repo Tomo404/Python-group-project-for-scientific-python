@@ -68,9 +68,13 @@ if not BUILDING_DOCS:
 
                     def confirm_destination():
                         destination = city_var.get()
-                        messagebox.showinfo("Charter Flight", f"You will fly to {destination}.")
-                        # Optionally move the player here, or return value for game logic
-                        dest_popup.destroy()
+                        if destination == current_city:
+                            messagebox.showerror("Invalid Selection",
+                                                 f"You must choose another city that is not {current_city}.")
+                        else:
+                            messagebox.showinfo("Charter Flight", f"You will fly to {destination}.")
+                            # Optionally move the player here, or return value for game logic
+                            dest_popup.destroy()
 
                     tk.Button(dest_popup, text="Confirm", command=confirm_destination).pack(pady=10)
                     dest_popup.grab_set()
@@ -92,17 +96,17 @@ if not BUILDING_DOCS:
                                          f"You can only build a research center in your current city: {current_city}.")
                     return
 
-                if data_unloader.cities[current_city]["research"] == 1:
+                if data_unloader.cities[current_city]["research_center"] == 1:
                     messagebox.showinfo("Already Present", f"There is already a research center in {current_city}.")
                     return
 
                 # Count total research centers
-                total_research_centers = sum(city_data["research"] for city_data in data_unloader.cities.values())
+                total_research_centers = sum(city_data["research_center"] for city_data in data_unloader.cities.values())
 
                 if total_research_centers >= 6:
                     # Let player choose one to remove
                     other_cities = [name for name, data in data_unloader.cities.items()
-                                    if data["research"] == 1 and name != current_city]
+                                    if data["research_center"] == 1 and name != current_city]
 
                     def choose_research_center_to_remove():
                         select_popup = tk.Toplevel()
@@ -117,8 +121,8 @@ if not BUILDING_DOCS:
 
                         def confirm_removal():
                             chosen_city = removable_city.get()
-                            data_unloader.cities[chosen_city]["research"] = 0
-                            data_unloader.cities[current_city]["research"] = 1
+                            data_unloader.cities[chosen_city]["research_center"] = 0
+                            data_unloader.cities[current_city]["research_center"] = 1
                             messagebox.showinfo("Moved", f"Moved research center from {chosen_city} to {current_city}.")
                             select_popup.destroy()
 
@@ -129,7 +133,7 @@ if not BUILDING_DOCS:
                     choose_research_center_to_remove()
                 else:
                     # Add research center normally
-                    data_unloader.cities[current_city]["research"] = 1
+                    data_unloader.cities[current_city]["research_center"] = 1
                     messagebox.showinfo("Built", f"Research center built in {current_city}.")
 
             elif purpose == "card_overflow":
@@ -197,10 +201,33 @@ def reset_card_draws():
     remaining_infection_cards = data_unloader.infection_rate_marker_amount[data_unloader.infection_rate_marker]  # Set infection card draws based on infection rate
     data_unloader.actions = 4
 
-def drive_ferry() -> None:
+def drive_ferry(player_id) -> None:
     if world_map_drawer.can_perform_action():
         """Perform the Drive/Ferry action."""
         print("Drive/Ferry action triggered!")
+        current_city = data_unloader.players_locations[player_id]
+        neighbors = data_unloader.cities[current_city]["relations"]
+
+        popup = tk.Toplevel()
+        popup.title("Drive/Ferry - Select destination")
+        popup.geometry("300x200")
+
+        tk.Label(popup, text=f"Currently in: {current_city}", font=("Arial", 10, "bold")).pack(pady=5)
+        tk.Label(popup, text="Select a destination:", font=("Arial", 10)).pack()
+
+        def handle_selection(destination):
+            print(f"Player {player_id} moving from {current_city} to {destination}")
+            data_unloader.players_locations[player_id] = destination
+            messagebox.showinfo("Drive/Ferry", f"You moved from {current_city} to {destination}.")
+            popup.destroy()
+
+        for city in neighbors:
+            tk.Button(
+                popup,
+                text=city,
+                width=25,
+                command=lambda c=city: handle_selection(c)
+            ).pack(pady=3)
 
 def direct_flight(player_id) -> None:
     if world_map_drawer.can_perform_action():
@@ -273,9 +300,9 @@ def drawing_phase() -> None:
         if card["name"] == "Epidemic":
             print("🧨 Epidemic card drawn!")
             world_map_drawer.update_game_text("Epidemic! Increase, Infect, and Intensify")
-            handle_epidemic()
             # ✅ Remove epidemic card from the game by tracking it explicitly
             data_unloader.epidemiccard_discard.append(card)
+            handle_epidemic()
         else:
             hand.append(card)
 
