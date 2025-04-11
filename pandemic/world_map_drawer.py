@@ -280,7 +280,7 @@ def setup_buttons(event):
 
         buttons = [
             ("Drive/Ferry", 440, 625, "setup_drive_ferry_popup"),
-            ("Direct Flight", 440, 647, "direct_flight"),
+            ("Direct Flight", 440, 647, "setup_direct_flight_popup"),
             ("Charter Flight", 440, 669, "charter_flight"),
             ("Shuttle Flight", 440, 691, "shuttle_flight"),
             ("Build R.C.", 440, 713, "build_research_center"),
