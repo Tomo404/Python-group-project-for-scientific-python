@@ -279,7 +279,7 @@ def setup_buttons(event):
         button_height = 20  # Approximate height of the buttons
 
         buttons = [
-            ("Drive/Ferry", 440, 625, "drive_ferry"),
+            ("Drive/Ferry", 440, 625, "setup_drive_ferry_popup"),
             ("Direct Flight", 440, 647, "direct_flight"),
             ("Charter Flight", 440, 669, "charter_flight"),
             ("Shuttle Flight", 440, 691, "shuttle_flight"),
