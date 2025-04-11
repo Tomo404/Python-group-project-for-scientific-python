@@ -282,7 +282,7 @@ def setup_buttons(event):
             ("Drive/Ferry", 440, 625, "setup_drive_ferry_popup"),
             ("Direct Flight", 440, 647, "direct_flight"),
             ("Charter Flight", 440, 669, "charter_flight"),
-            ("Shuttle Flight", 440, 691, "shuttle_flight"),
+            ("Shuttle Flight", 440, 691, "setup_shuttle_flight_popup"),
             ("Build R.C.", 440, 713, "build_research_center"),
             ("Treat Disease", 440, 735, "treat_disease"),
             ("Share Knowledge", 440, 757, "share_knowledge"),
