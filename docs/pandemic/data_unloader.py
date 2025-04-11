@@ -70,7 +70,8 @@ def load_infections():
 infections = load_infections()
 
 infection_discard = []  # Discard pile for used infection cards
-
+playercard_discard = []
+epidemiccard_discard = []
 def set_game_settings():
     """Asks for player count and epidemic cards with validation."""
     global players, epidemic_cards

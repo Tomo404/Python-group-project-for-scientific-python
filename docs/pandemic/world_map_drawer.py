@@ -267,7 +267,9 @@ def handle_click(action):
     """Handles button clicks by executing the corresponding action."""
     import functions
     if action in functions.__dict__:
-        functions.__dict__[action]()  # Calls the function dynamically
+        functions.__dict__[action](player_id)  # Calls the function dynamically
+    elif action in globals():
+        globals()[action]()
     else:
         print(f"Action '{action}' not found in functions.")
 
