@@ -96,31 +96,8 @@ def drawing_phase() -> None:
     Execute the drawing phase for the current player.
     Draws 2 player cards, handles epidemic logic, and transitions to infection phase.
     """
-    import time
 
-    player_id = world_map_drawer.current_playerturn
-    hand = data_unloader.players_hands[player_id]
 
-    for _ in range(2):
-        if not data_unloader.player_deck:
-            print("🔚 Player deck is empty! Game over.")
-            world_map_drawer.update_game_text("Game Over – player deck exhausted!")
-            return
-
-        card = data_unloader.player_deck.pop(0)
-        print(f"🎴 Player {player_id + 1} drew: {card['name']}")
-
-        if card["name"] == "Epidemic":
-            print("🧨 Epidemic card drawn!")
-            world_map_drawer.update_game_text("Epidemic! Increase, Infect, and Intensify")
-            handle_epidemic()
-        else:
-            hand.append(card)
-
-    # Update text on the map to reflect new hand size
-    world_map_drawer.update_text(player_id)
-    time.sleep(1.5)  # Small pause for readability
-    infection_phase()  # Proceed to infection phase
 
 
 def infection_phase() -> None:
@@ -153,29 +130,4 @@ def handle_epidemic():
     2. Infect a city with 3 cubes
     3. Intensify (shuffle discard pile and place it on top)
     """
-    # 1. Increase infection rate marker
-    data_unloader.infection_rate_marker = min(data_unloader.infection_rate_marker + 1, 6)
-
-    # 2. Infect: Draw bottom card from infection deck
-    if data_unloader.infections:
-        bottom_card = data_unloader.infections.pop(-1)
-        city = bottom_card["name"]
-        color = bottom_card["color"]
-        color_index = ["yellow", "red", "blue", "black"].index(color)
-
-        print(f"☣️ Epidemic in {city}! Adding 3 {color} cubes.")
-
-        current_level = data_unloader.cities[city]["infection_levels"][color_index]
-        new_level = min(current_level + 3, 3)
-        data_unloader.cities[city]["infection_levels"][color_index] = new_level
-        data_unloader.infection_cubes[color_index] -= min(3, 3 - current_level)
-
-        data_unloader.infection_discard.append(bottom_card)
-    else:
-        print("⚠️ No more infection cards!")
-
-    # 3. Intensify: Shuffle discard pile and place on top
-    random.shuffle(data_unloader.infection_discard)
-    data_unloader.infections = data_unloader.infection_discard + data_unloader.infections
-    data_unloader.infection_discard.clear()
 
