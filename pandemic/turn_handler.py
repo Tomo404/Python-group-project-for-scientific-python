@@ -8,21 +8,20 @@ BUILDING_DOCS = os.environ.get("READTHEDOCS") == "True" or "sphinx" in sys.modul
 if not BUILDING_DOCS:
     root = world_map_drawer.root
 players = data_unloader.in_game_roles
-game_over = False
 current_player_index = 0
 
 def check_button_click():
     match True:
         case world_map_drawer.handle_click("drive_ferry"):
-            functions.drive_ferry()
+            functions.drive_ferry(current_player_index)
         case world_map_drawer.handle_click("direct_flight"):
-            functions.direct_flight()
+            functions.direct_flight(current_player_index)
         case world_map_drawer.handle_click("charter_flight"):
-            functions.charter_flight()
+            functions.charter_flight(current_player_index)
         case world_map_drawer.handle_click("shuttle_flight"):
             functions.shuttle_flight()
         case world_map_drawer.handle_click("build_research_center"):
-            functions.build_research_center()
+            functions.build_research_center(current_player_index)
         case world_map_drawer.handle_click("treat_disease"):
             functions.treat_disease()
         case world_map_drawer.handle_click("share_knowledge"):
@@ -36,19 +35,12 @@ def check_button_click():
         case _:
             print("Unknown button clicked!")
 
-def check_game_over():
-    global game_over
-    if len(data_unloader.player_deck) < 2 or data_unloader.outbreak_marker == 8:
-        game_over = True
-        world_map_drawer.update_game_text("Game Over!")
-        return True
-    return False
-
 def next_turn():
     global current_player_index
-    if check_game_over():
+    if functions.check_game_over():
         return
 
+    functions.reset_card_draws()
     player_id = current_player_index
     player_role = players[player_id]
     world_map_drawer.update_player_portrait(world_map_drawer.canvas, player_role, player_id + 1)
@@ -56,7 +48,7 @@ def next_turn():
     current_city = data_unloader.players_locations[player_id]
     world_map_drawer.update_player_marker(player_id, current_city)
     current_player_index = (current_player_index + 1) % len(players)
-    world_map_drawer.root.after(data_unloader.actions * 90000, next_turn)
+    world_map_drawer.root.after(data_unloader.actions * 10000, next_turn)
 
 ### --- ✅ INITIALIZE EVERYTHING --- ###
 if not BUILDING_DOCS:
