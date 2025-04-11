@@ -13,7 +13,7 @@ current_player_index = 0
 def check_button_click():
     match True:
         case world_map_drawer.handle_click("drive_ferry"):
-            functions.drive_ferry()
+            functions.drive_ferry(current_player_index)
         case world_map_drawer.handle_click("direct_flight"):
             functions.direct_flight(current_player_index)
         case world_map_drawer.handle_click("charter_flight"):
