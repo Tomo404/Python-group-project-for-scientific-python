@@ -248,38 +248,7 @@ def charter_flight(player_id) -> None:
 def shuttle_flight() -> None:
     if world_map_drawer.can_perform_action():
         """Perform the Shuttle Flight action."""
-        player_id = world_map_drawer.current_playerturn
-        current_city = data_unloader.players_locations[player_id]
-
-        # Find cities that have a research center, excluding current city
-        destination_cities = [city for city, info in data_unloader.cities.items()
-                              if info["research"] == 1 and city != current_city]
-
-        if not destination_cities:
-            tk.messagebox.showinfo("No Valid Destinations", "There are no other research centers to fly to.")
-            return
-
-        # Create popup
-        popup = tk.Toplevel(world_map_drawer.root)
-        popup.title("Shuttle Flight - Select destination")
-        popup.geometry("300x300")
-
-        tk.Label(popup, text=f"Current city: {current_city}", font=("Arial", 10)).pack(pady=5)
-        tk.Label(popup, text="Choose destination with a research center:", font=("Arial", 10)).pack(pady=5)
-
-        for city in destination_cities:
-            tk.Button(
-                popup,
-                text=city,
-                width=25,
-                command=lambda c=city: [
-                    popup.destroy(),
-                    data_unloader.players_locations.__setitem__(player_id, c),
-                    world_map_drawer.update_player_marker(player_id, c),
-                    world_map_drawer.update_game_text(f"Player {player_id + 1} took a shuttle flight from {current_city} to {c}."),
-                    world_map_drawer.update_text(player_id)
-                ]
-            ).pack(pady=3)
+        world_map_drawer.setup_shuttle_flight_popup()
 
 
 def build_research_center(player_id) -> None:

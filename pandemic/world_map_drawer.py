@@ -330,6 +330,45 @@ def setup_drive_ferry_popup():
             command=lambda c=city: [popup.destroy(), drive_ferry(c)]
         ).pack(pady=3)
 
+def setup_shuttle_flight_popup():
+    """Opens a popup window for selecting a destination city with a research center."""
+    from tkinter import Toplevel, Label, Button
+    from pandemic import data_unloader, world_map_drawer
+
+    popup = Toplevel(world_map_drawer.root)
+    popup.title("Shuttle Flight - Select destination")
+    popup.geometry("300x300")
+
+    player_id = world_map_drawer.current_playerturn
+    current_city = data_unloader.players_locations[player_id]
+
+    # Find valid destination cities (with research centers, excluding current city)
+    destination_cities = [city for city, info in data_unloader.cities.items()
+                          if info["research"] == 1 and city != current_city]
+
+    if not destination_cities:
+        Label(popup, text="No valid destinations.").pack(pady=20)
+        return
+
+    Label(popup, text=f"Currently in: {current_city}", font=("Arial", 10, "bold")).pack(pady=5)
+    Label(popup, text="Select a destination with a research center:", font=("Arial", 10)).pack()
+
+    for city in destination_cities:
+        Button(
+            popup,
+            text=city,
+            width=25,
+            command=lambda c=city: [
+                popup.destroy(),
+                data_unloader.players_locations.__setitem__(player_id, c),
+                world_map_drawer.update_player_marker(player_id, c),
+                world_map_drawer.update_game_text(
+                    f"Player {player_id + 1} took a Shuttle Flight from {current_city} to {c}."
+                ),
+                world_map_drawer.update_text(player_id)
+            ]
+        ).pack(pady=3)
+
 def update_outbreak_marker():
     if not BUILDING_DOCS:
         """Updates the outbreak marker position when an outbreak occurs."""
