@@ -1,12 +1,12 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 
-import os
 from pandemic import data_unloader
 from pandemic.data_unloader import cities  # Import city data
 import os
 import sys
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 BUILDING_DOCS = os.environ.get("READTHEDOCS") == "True" or "sphinx" in sys.modules
 scale_factor = 1
 x_offset = 1
@@ -16,7 +16,7 @@ if not BUILDING_DOCS:
     window_width, window_height = 1550, 800
     canvas = tk.Canvas(root, width=window_width, height=window_height)
     # Load image
-    image_path = "../pictures/world_map.png"  # Ensure correct path
+    image_path = os.path.join(BASE_DIR, "..", "pictures", "world_map.png")
     pil_image = Image.open(image_path)
     img_width, img_height = pil_image.size  # Get image size
 
@@ -27,7 +27,7 @@ if not BUILDING_DOCS:
     resized_image = pil_image.resize((new_width, new_height), Image.LANCZOS)
 
     # Load the background image
-    bg_image_path = "../pictures/background_image.png"  # Replace with your actual image file
+    bg_image_path = os.path.join(BASE_DIR, "..", "pictures", "background_image.png")
     bg_image = Image.open(bg_image_path)
     bg_image = bg_image.resize((window_width, window_height), Image.LANCZOS)
 
@@ -267,7 +267,7 @@ def handle_click(action):
     """Handles button clicks by executing the corresponding action."""
     import functions
     if action in functions.__dict__:
-        functions.__dict__[action]()  # Calls the function dynamically
+        functions.__dict__[action](player_id)  # Calls the function dynamically
     elif action in globals():
         globals()[action]()
     else:
@@ -279,7 +279,7 @@ def setup_buttons(event):
         button_height = 20  # Approximate height of the buttons
 
         buttons = [
-            ("Drive/Ferry", 440, 625, "setup_drive_ferry_popup"),
+            ("Drive/Ferry", 440, 625, "drive_ferry"),
             ("Direct Flight", 440, 647, "direct_flight"),
             ("Charter Flight", 440, 669, "charter_flight"),
             ("Shuttle Flight", 440, 691, "shuttle_flight"),
@@ -305,30 +305,6 @@ def setup_skip_turn_button(event):
 
 outbreak_marker_id = None
 outbreak_marker = 0
-
-def setup_drive_ferry_popup():
-    """Popup ablak szomszédos város kiválasztására Drive/Ferry mozgáshoz."""
-    from tkinter import Toplevel, Label, Button
-
-    popup = Toplevel(root)
-    popup.title("Drive/Ferry - Válassz célvárost")
-    popup.geometry("300x200")
-
-    player_id = current_playerturn
-    current_city = data_unloader.players_locations[player_id]
-    neighbors = data_unloader.cities[current_city]["relations"]
-
-    Label(popup, text=f"Innen indulsz: {current_city}", font=("Arial", 10, "bold")).pack(pady=5)
-    Label(popup, text="Válaszd ki, hova akarsz menni:", font=("Arial", 10)).pack()
-
-    for city in neighbors:
-        Button(
-            popup,
-            text=city,
-            width=25,
-            command=lambda c=city: [popup.destroy(), functions.drive_ferry(c)]
-        ).pack(pady=3)
-
 
 def update_outbreak_marker():
     if not BUILDING_DOCS:
@@ -390,18 +366,31 @@ current_portrait = None
 current_playerid = None
 current_playerturn = None
 
+import os
+
 def load_role_images():
     if not BUILDING_DOCS:
         """Loads all role images into memory."""
         roles = data_unloader.player_roles
         for role in roles:
             try:
-                img = Image.open(f"../pictures/{role.lower().replace(' ', '_')}.png")  # Ensure correct file naming
+                filename = f"{role.lower().replace(' ', '_')}.png"
+                img_path = os.path.join(os.path.dirname(__file__), "../pictures", filename)
+
+                img = Image.open(img_path)
                 img = img.resize((100, 140))  # Resize to fit UI
+
                 role_images[role] = ImageTk.PhotoImage(img)
 
+                # Optional: Prevent garbage collection if you're assigning these to widgets later
+                if 'loaded_role_images' not in globals():
+                    global loaded_role_images
+                    loaded_role_images = {}
+                loaded_role_images[role] = role_images[role]
+
             except Exception as e:
-                print(f"Error loading {role}: {e}")
+                print(f"[WARNING] Could not load image for {role}: {e}")
+
 
 def update_player_portrait(canvas, current_player, iter):
     if not BUILDING_DOCS:
@@ -461,48 +450,59 @@ def update_game_text(message):
         )
 
 if not BUILDING_DOCS:
-    # Putting on the player and infection card backs onto the map, with buttons as well
-    original_image1 = Image.open("../pictures/infection_card_back.png")
-    resized_image2 = original_image1.resize((original_image1.width + 10, original_image1.height - 5))
-    original_image2 = Image.open("../pictures/player_card_back.png")
-    resized_image1 = original_image2.resize((original_image2.width - 25, original_image2.height - 25))
+    try:
+        # Load and resize infection card image
+        infection_img_path = os.path.join(os.path.dirname(__file__), "../pictures/infection_card_back.png")
+        player_img_path = os.path.join(os.path.dirname(__file__), "../pictures/player_card_back.png")
 
-    button_background_image2 = ImageTk.PhotoImage(resized_image2)
-    button_background_image1 = ImageTk.PhotoImage(resized_image1)
+        original_infection = Image.open(infection_img_path)
+        resized_infection = original_infection.resize((original_infection.width + 10, original_infection.height - 5))
 
-    # Create buttons with text overlay
-    button2_action="draw_infection_card"
-    button2 = tk.Button(
-        root,
-        image=button_background_image2,
-        text="Draw Infection Card",
-        compound="center",
-        fg="white",
-        font=("Arial", 12, "bold"),
-        relief="flat",
-        command=lambda a=button2_action: handle_click(a)
-    )
+        original_player = Image.open(player_img_path)
+        resized_player = original_player.resize((original_player.width - 25, original_player.height - 25))
 
-    button1_action="draw_player_card"
-    button1 = tk.Button(
-        root,
-        image=button_background_image1,
-        text="Draw Player Card",
-        compound="center",
-        fg="white",
-        font=("Arial", 12, "bold"),
-        relief="flat",
-        command=lambda a=button1_action: handle_click(a)
-    )
+        # Convert to Tk images
+        button_background_image2 = ImageTk.PhotoImage(resized_infection)
+        button_background_image1 = ImageTk.PhotoImage(resized_player)
 
-    # Place buttons at specified coordinates
-    x_coord2 = (1099 * scale_factor) + x_offset  # x-coordinate for center
-    y_coord2 = (714 * scale_factor) + y_offset  # y-coordinate for center
-    x_coord1 = (1282 * scale_factor) + x_offset  # x-coordinate for center
-    y_coord1 = (200 * scale_factor) + y_offset  # y-coordinate for center
+        # Create and place buttons
+        button2 = tk.Button(
+            root,
+            image=button_background_image2,
+            text="Draw Infection Card",
+            compound="center",
+            fg="white",
+            font=("Arial", 12, "bold"),
+            relief="flat",
+            command=lambda: handle_click("draw_infection_card")
+        )
+        button1 = tk.Button(
+            root,
+            image=button_background_image1,
+            text="Draw Player Card",
+            compound="center",
+            fg="white",
+            font=("Arial", 12, "bold"),
+            relief="flat",
+            command=lambda: handle_click("draw_player_card")
+        )
 
-    button1.place(x=x_coord2, y=y_coord2, anchor="center")
-    button2.place(x=x_coord1, y=y_coord1, anchor="center")
+        # Place them using offsets and scaling
+        x_coord2 = (1099 * scale_factor) + x_offset
+        y_coord2 = (714 * scale_factor) + y_offset
+        x_coord1 = (1282 * scale_factor) + x_offset
+        y_coord1 = (200 * scale_factor) + y_offset
+
+        button1.place(x=x_coord2, y=y_coord2, anchor="center")
+        button2.place(x=x_coord1, y=y_coord1, anchor="center")
+
+        # Keep a reference to avoid garbage collection
+        root.button_background_image1 = button_background_image1
+        root.button_background_image2 = button_background_image2
+
+    except Exception as e:
+        print(f"[WARNING] Failed to load button images: {e}")
+
 
 def start_gui(next_turn_callback):
     create_window()
