@@ -330,6 +330,29 @@ def setup_drive_ferry_popup():
             command=lambda c=city: [popup.destroy(), drive_ferry(c)]
         ).pack(pady=3)
 
+def setup_direct_flight_popup():
+    """Popup window for selecting a destination city for Direct Flight."""
+    from tkinter import Toplevel, Label, Button
+    from pandemic import data_unloader, functions
+
+    popup = Toplevel(root)
+    popup.title("Direct Flight - Select destination")
+    popup.geometry("300x300")
+
+    player_id = current_playerturn
+    hand = data_unloader.players_hands[player_id]
+
+    Label(popup, text="Select a city to fly to:", font=("Arial", 10)).pack(pady=5)
+
+    for card in hand:
+        if card["cardtype"] == "city_card":
+            city = card["name"]
+            Button(
+                popup,
+                text=city,
+                width=25,
+                command=lambda c=city: [popup.destroy(), functions.direct_flight(c)]
+            ).pack(pady=3)
 
 def update_outbreak_marker():
     if not BUILDING_DOCS:
