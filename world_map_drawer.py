@@ -1,59 +1,54 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 
+import os
 from pandemic import data_unloader
 from pandemic.data_unloader import cities  # Import city data
-import os
-import sys
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-BUILDING_DOCS = os.environ.get("READTHEDOCS") == "True" or "sphinx" in sys.modules
-scale_factor = 1
-x_offset = 1
-y_offset = 1
-if not BUILDING_DOCS:
-    root = tk.Tk()
-    window_width, window_height = 1550, 800
-    canvas = tk.Canvas(root, width=window_width, height=window_height)
-    # Load image
-    image_path = os.path.join(BASE_DIR, "..", "pictures", "world_map.png")
-    pil_image = Image.open(image_path)
-    img_width, img_height = pil_image.size  # Get image size
+root = tk.Tk()
+window_width, window_height = 1550, 800
+canvas = tk.Canvas(root, width=window_width, height=window_height)
+# Load image
+image_path = "../pictures/world_map.png"  # Ensure correct path
+pil_image = Image.open(image_path)
+img_width, img_height = pil_image.size  # Get image size
 
-    # Scale image while maintaining aspect ratio
-    scale_factor = min(window_width / img_width, window_height / img_height)
-    new_width = int(img_width * scale_factor)
-    new_height = int(img_height * scale_factor)
-    resized_image = pil_image.resize((new_width, new_height), Image.LANCZOS)
+# Scale image while maintaining aspect ratio
+scale_factor = min(window_width / img_width, window_height / img_height)
+new_width = int(img_width * scale_factor)
+new_height = int(img_height * scale_factor)
+resized_image = pil_image.resize((new_width, new_height), Image.LANCZOS)
 
-    # Load the background image
-    bg_image_path = os.path.join(BASE_DIR, "..", "pictures", "background_image.png")
-    bg_image = Image.open(bg_image_path)
-    bg_image = bg_image.resize((window_width, window_height), Image.LANCZOS)
+# Load the background image
+bg_image_path = "../pictures/background_image.png"  # Replace with your actual image file
+bg_image = Image.open(bg_image_path)
+bg_image = bg_image.resize((window_width, window_height), Image.LANCZOS)
+bg_tk_image = ImageTk.PhotoImage(bg_image)
 
-    x_offset = (window_width - new_width) // 2
-    y_offset = (window_height - new_height) // 2
-
-    background_image = None
-    map_image = None
+x_offset = (window_width - new_width) // 2
+y_offset = (window_height - new_height) // 2
 
 def create_window():
-    global root, canvas, background_image, map_image
+    root = tk.Tk()
     root.geometry(f"{window_width}x{window_height}")
     root.title("Pandemic Game Map")
-    canvas.pack(fill="both", expand=True)
 
     # Convert to Tkinter format
-    bg_tk_image = ImageTk.PhotoImage(bg_image)
     map_image = ImageTk.PhotoImage(resized_image)
 
-    # Prevent garbage collection
-    canvas.bg_tk_image = bg_tk_image
-    canvas.map_image = map_image
+    # Create canvas
+    canvas = tk.Canvas(root, width=window_width, height=window_height)
+    canvas.pack(fill="both", expand=True)
 
-    # Place background image and map on the canvas (fills the whole window)
+    # Place background image on the canvas (fills the whole window)
     canvas.create_image(0, 0, anchor=tk.NW, image=bg_tk_image)
+
+    # Center image in canvas
     canvas.create_image(x_offset, y_offset, anchor=tk.NW, image=map_image)
+    root.mainloop()
+
+if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
+    create_window()
 
 def can_perform_action():
     if data_unloader.actions > 0:
@@ -141,7 +136,7 @@ def hide_infections(event):
 
 def show_infection_popup(event):
     """Opens a new pop-up window listing infections grouped by color."""
-    if not BUILDING_DOCS:
+    if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
         popup = tk.Toplevel(root)
         popup.title("Infection Overview")
         popup.geometry("400x400")  # Adjusted size for better readability
@@ -156,7 +151,7 @@ def show_infection_popup(event):
                 tk.Label(popup, text=f"{colors[v]} Infections:", font=("Arial", 11, "bold"), fg=infection_colors[v]).pack(anchor="w", padx=10, pady=3)
                 tk.Label(popup, text=", ".join(infected_cities), font=("Arial", 10), wraplength=350, justify="left").pack(anchor="w", padx=20)
 
-if not BUILDING_DOCS:
+if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
     # Create the hover and pop-up button
     hover_button = tk.Button(root, text="Show Infections", bg="green3", fg="black")
     canvas.create_window(575, 710, window=hover_button)
@@ -170,7 +165,7 @@ if not BUILDING_DOCS:
 text_elements = {}
 
 def draw_initial_text():
-    if not BUILDING_DOCS:
+    if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
         """Creates the initial text elements on the map."""
         global text_elements
         i = data_unloader.infection_rate_marker  # Infection rate index
@@ -187,7 +182,7 @@ def draw_initial_text():
         text_elements["player_city"] = canvas.create_text(572, 680, text=f" city: {data_unloader.players_locations[0]}", font=("Arial", 8, "bold"), fill="black")
 
 def update_text(current_player_id):
-    if not BUILDING_DOCS:
+    if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
         """Updates the text elements dynamically based on the current player."""
         i = data_unloader.infection_rate_marker  # Get updated infection rate index
 
@@ -215,7 +210,7 @@ player_markers = {}
 
 # Function to update player markers when they move
 def update_player_marker(player_id, new_city):
-    if not BUILDING_DOCS:
+    if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
         """Moves a player's marker on the map."""
         global player_markers  # Track player markers
 
@@ -244,7 +239,7 @@ for player_id, (player, city) in enumerate(data_unloader.players_locations.items
 
 #player hand management
 def player_hand_popup():
-    if not BUILDING_DOCS:
+    if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
         """Opens a pop-up window listing the cards in each player's hand."""
         popup2 = tk.Toplevel(root)
         popup2.title("Player Hands")
@@ -258,7 +253,7 @@ def player_hand_popup():
                 for card in hand:
                     tk.Label(popup2, text=card, font=("Arial", 10)).pack(anchor="center", padx=20)
 
-if not BUILDING_DOCS:
+if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
     # Create the button properly
     player_button = tk.Button(root, text="Show Player's Hand", command=player_hand_popup, bg="grey30", fg="black", width=24, height=8, font=("Arial", 12, "bold"))
     canvas.create_window((1199 * scale_factor) + x_offset, (1056 * scale_factor) + y_offset, window=player_button)
@@ -267,14 +262,12 @@ def handle_click(action):
     """Handles button clicks by executing the corresponding action."""
     import functions
     if action in functions.__dict__:
-        functions.__dict__[action](player_id)  # Calls the function dynamically
-    elif action in globals():
-        globals()[action]()
+        functions.__dict__[action]()  # Calls the function dynamically
     else:
         print(f"Action '{action}' not found in functions.")
 
 def setup_buttons(event):
-    if not BUILDING_DOCS:
+    if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
         button_width = 120  # Approximate width of the buttons
         button_height = 20  # Approximate height of the buttons
 
@@ -296,7 +289,7 @@ def setup_buttons(event):
             button.place(x=4 + x - button_width // 2, y=y - button_height // 2, width=button_width, height=button_height)
 
 def setup_skip_turn_button(event):
-    if not BUILDING_DOCS:
+    if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
         skip_button = tk.Button(root, text="Skip Turn", font=("Arial", 8), bg="grey30", fg="black",
                                 command=lambda: handle_click("skip_turn"))
         button_width = 120
@@ -307,7 +300,7 @@ outbreak_marker_id = None
 outbreak_marker = 0
 
 def update_outbreak_marker():
-    if not BUILDING_DOCS:
+    if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
         """Updates the outbreak marker position when an outbreak occurs."""
         global outbreak_marker, outbreak_marker_id
 
@@ -333,7 +326,7 @@ cure_markers = [((695 * scale_factor) + x_offset, (1049 * scale_factor) + y_offs
 
 
 def update_disease_status(disease_index):
-    if not BUILDING_DOCS:
+    if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
         """Updates the displayed disease status marker for a specific disease."""
 
         # Determine the new color based on status
@@ -366,34 +359,21 @@ current_portrait = None
 current_playerid = None
 current_playerturn = None
 
-import os
-
 def load_role_images():
-    if not BUILDING_DOCS:
+    if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
         """Loads all role images into memory."""
         roles = data_unloader.player_roles
         for role in roles:
             try:
-                filename = f"{role.lower().replace(' ', '_')}.png"
-                img_path = os.path.join(os.path.dirname(__file__), "../pictures", filename)
-
-                img = Image.open(img_path)
+                img = Image.open(f"../pictures/{role.lower().replace(' ', '_')}.png")  # Ensure correct file naming
                 img = img.resize((100, 140))  # Resize to fit UI
-
                 role_images[role] = ImageTk.PhotoImage(img)
 
-                # Optional: Prevent garbage collection if you're assigning these to widgets later
-                if 'loaded_role_images' not in globals():
-                    global loaded_role_images
-                    loaded_role_images = {}
-                loaded_role_images[role] = role_images[role]
-
             except Exception as e:
-                print(f"[WARNING] Could not load image for {role}: {e}")
-
+                print(f"Error loading {role}: {e}")
 
 def update_player_portrait(canvas, current_player, iter):
-    if not BUILDING_DOCS:
+    if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
         """Updates the canvas with the current player's role portrait."""
         global current_portrait
         global current_playerid
@@ -449,71 +429,56 @@ def update_game_text(message):
             fill="black"
         )
 
-if not BUILDING_DOCS:
-    try:
-        # Load and resize infection card image
-        infection_img_path = os.path.join(os.path.dirname(__file__), "../pictures/infection_card_back.png")
-        player_img_path = os.path.join(os.path.dirname(__file__), "../pictures/player_card_back.png")
+if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
+    # Putting on the player and infection card backs onto the map, with buttons as well
+    original_image1 = Image.open("../pictures/infection_card_back.png")
+    resized_image2 = original_image1.resize((original_image1.width + 10, original_image1.height - 5))
+    original_image2 = Image.open("../pictures/player_card_back.png")
+    resized_image1 = original_image2.resize((original_image2.width - 25, original_image2.height - 25))
 
-        original_infection = Image.open(infection_img_path)
-        resized_infection = original_infection.resize((original_infection.width + 10, original_infection.height - 5))
+    button_background_image2 = ImageTk.PhotoImage(resized_image2)
+    button_background_image1 = ImageTk.PhotoImage(resized_image1)
 
-        original_player = Image.open(player_img_path)
-        resized_player = original_player.resize((original_player.width - 25, original_player.height - 25))
+    # Create buttons with text overlay
+    button2_action="draw_infection_card"
+    button2 = tk.Button(
+        root,
+        image=button_background_image2,
+        text="Draw Infection Card",
+        compound="center",
+        fg="white",
+        font=("Arial", 12, "bold"),
+        relief="flat",
+        command=lambda a=button2_action: handle_click(a)
+    )
 
-        # Convert to Tk images
-        button_background_image2 = ImageTk.PhotoImage(resized_infection)
-        button_background_image1 = ImageTk.PhotoImage(resized_player)
+    button1_action="draw_player_card"
+    button1 = tk.Button(
+        root,
+        image=button_background_image1,
+        text="Draw Player Card",
+        compound="center",
+        fg="white",
+        font=("Arial", 12, "bold"),
+        relief="flat",
+        command=lambda a=button1_action: handle_click(a)
+    )
 
-        # Create and place buttons
-        button2 = tk.Button(
-            root,
-            image=button_background_image2,
-            text="Draw Infection Card",
-            compound="center",
-            fg="white",
-            font=("Arial", 12, "bold"),
-            relief="flat",
-            command=lambda: handle_click("draw_infection_card")
-        )
-        button1 = tk.Button(
-            root,
-            image=button_background_image1,
-            text="Draw Player Card",
-            compound="center",
-            fg="white",
-            font=("Arial", 12, "bold"),
-            relief="flat",
-            command=lambda: handle_click("draw_player_card")
-        )
+    # Place buttons at specified coordinates
+    x_coord2 = (1099 * scale_factor) + x_offset  # x-coordinate for center
+    y_coord2 = (714 * scale_factor) + y_offset  # y-coordinate for center
+    x_coord1 = (1282 * scale_factor) + x_offset  # x-coordinate for center
+    y_coord1 = (200 * scale_factor) + y_offset  # y-coordinate for center
 
-        # Place them using offsets and scaling
-        x_coord2 = (1099 * scale_factor) + x_offset
-        y_coord2 = (714 * scale_factor) + y_offset
-        x_coord1 = (1282 * scale_factor) + x_offset
-        y_coord1 = (200 * scale_factor) + y_offset
+    button1.place(x=x_coord2, y=y_coord2, anchor="center")
+    button2.place(x=x_coord1, y=y_coord1, anchor="center")
 
-        button1.place(x=x_coord2, y=y_coord2, anchor="center")
-        button2.place(x=x_coord1, y=y_coord1, anchor="center")
-
-        # Keep a reference to avoid garbage collection
-        root.button_background_image1 = button_background_image1
-        root.button_background_image2 = button_background_image2
-
-    except Exception as e:
-        print(f"[WARNING] Failed to load button images: {e}")
-
-
-def start_gui(next_turn_callback):
-    create_window()
-    update_research_centers()
+if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
+    update_research_centers()  # Update UI
     draw_initial_text()
     setup_buttons(canvas)
     setup_skip_turn_button(canvas)
     update_outbreak_marker()
     initialize_disease_status()
     load_role_images()
-
-    root.after(1000, next_turn_callback)  # schedule game start
-    root.mainloop()
     
