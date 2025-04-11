@@ -197,10 +197,27 @@ def reset_card_draws():
     remaining_infection_cards = data_unloader.infection_rate_marker_amount[data_unloader.infection_rate_marker]  # Set infection card draws based on infection rate
     data_unloader.actions = 4
 
-def drive_ferry() -> None:
-    if world_map_drawer.can_perform_action():
-        """Perform the Drive/Ferry action."""
-        print("Drive/Ferry action triggered!")
+def drive_ferry(destination: str) -> None:
+    """
+    Perform the Drive/Ferry action.
+
+    This action moves the current player to an adjacent city
+    without discarding any cards.
+    """
+    if not world_map_drawer.can_perform_action():
+        return
+
+    player_id = world_map_drawer.current_playerturn
+    current_city = data_unloader.players_locations[player_id]
+    neighbors = data_unloader.cities[current_city]["relations"]
+
+    if destination in neighbors:
+        data_unloader.players_locations[player_id] = destination
+        world_map_drawer.update_player_marker(player_id, destination)
+        world_map_drawer.update_game_text(f"Player {player_id + 1} moved from {current_city} to {destination} via Drive/Ferry.")
+    else:
+        print(f"Invalid move: {destination} is not adjacent to {current_city}.")
+
 
 def direct_flight(player_id) -> None:
     if world_map_drawer.can_perform_action():
