@@ -219,11 +219,26 @@ def drive_ferry(destination: str) -> None:
         print(f"Invalid move: {destination} is not adjacent to {current_city}.")
 
 
-def direct_flight(player_id) -> None:
+def direct_flight() -> None:
     if world_map_drawer.can_perform_action():
         """Perform the Direct Flight action."""
-        print("Direct Flight action triggered!")
-        discard(player_id, 1, "direct_flight")
+        if not world_map_drawer.can_perform_action():
+            return
+
+        player_id = world_map_drawer.current_playerturn
+        hand = data_unloader.players_hands[player_id]
+
+        # Check if player has the city card
+        for card in hand:
+            if card["name"] == city_name:
+                hand.remove(card)  # Discard the card
+                data_unloader.players_locations[player_id] = city_name
+                world_map_drawer.update_player_marker(player_id, city_name)
+                world_map_drawer.update_text(player_id)
+                world_map_drawer.update_game_text(f"Player {player_id + 1} flew directly to {city_name}.")
+                return
+
+        print(f"You don't have the card for {city_name}!")
 
 def charter_flight(player_id) -> None:
     if world_map_drawer.can_perform_action():
