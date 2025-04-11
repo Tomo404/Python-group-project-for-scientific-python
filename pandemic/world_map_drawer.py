@@ -306,6 +306,31 @@ def setup_skip_turn_button(event):
 outbreak_marker_id = None
 outbreak_marker = 0
 
+def setup_drive_ferry_popup():
+    """Opens a popup window for selecting a neighboring city to move via Drive/Ferry."""
+    from tkinter import Toplevel, Label, Button
+    from pandemic import data_unloader, world_map_drawer
+
+    popup = Toplevel(world_map_drawer.root)
+    popup.title("Drive/Ferry - Select destination")
+    popup.geometry("300x200")
+
+    player_id = world_map_drawer.current_playerturn
+    current_city = data_unloader.players_locations[player_id]
+    neighbors = data_unloader.cities[current_city]["relations"]
+
+    Label(popup, text=f"Currently in: {current_city}", font=("Arial", 10, "bold")).pack(pady=5)
+    Label(popup, text="Select a destination:", font=("Arial", 10)).pack()
+
+    for city in neighbors:
+        Button(
+            popup,
+            text=city,
+            width=25,
+            command=lambda c=city: [popup.destroy(), drive_ferry(c)]
+        ).pack(pady=3)
+
+
 def update_outbreak_marker():
     if not BUILDING_DOCS:
         """Updates the outbreak marker position when an outbreak occurs."""
