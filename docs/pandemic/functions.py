@@ -7,6 +7,7 @@ from functools import partial
 import random
 import os
 import sys
+import time
 
 BUILDING_DOCS = os.environ.get("READTHEDOCS") == "True" or "sphinx" in sys.modules
 # Define global variables to track remaining cards and actions
@@ -283,28 +284,25 @@ def drawing_phase() -> None:
     Execute the drawing phase for the current player.
     Draws 2 player cards, handles epidemic logic, and transitions to infection phase.
     """
-    import time
-
     player_id = world_map_drawer.current_playerturn
     hand = data_unloader.players_hands[player_id]
 
-    for _ in range(remaining_player_cards):
-        if not data_unloader.player_deck:
-            print("🔚 Player deck is empty! Game over.")
-            world_map_drawer.update_game_text("Game Over – player deck exhausted!")
-            return
+    if not data_unloader.player_deck:
+        print("🔚 Player deck is empty! Game over.")
+        world_map_drawer.update_game_text("Game Over – player deck exhausted!")
+        return
 
-        card = data_unloader.player_deck.pop(0)
-        print(f"🎴 Player {player_id + 1} drew: {card['name']}")
+    card = data_unloader.player_deck.pop(0)
+    print(f"🎴 Player {player_id + 1} drew: {card['name']}")
 
-        if card["name"] == "Epidemic":
-            print("🧨 Epidemic card drawn!")
-            world_map_drawer.update_game_text("Epidemic! Increase, Infect, and Intensify")
-            # ✅ Remove epidemic card from the game by tracking it explicitly
-            data_unloader.epidemiccard_discard.append(card)
-            handle_epidemic()
-        else:
-            hand.append(card)
+    if card["name"] == "Epidemic":
+        print("🧨 Epidemic card drawn!")
+        world_map_drawer.update_game_text("Epidemic! Increase, Infect, and Intensify")
+        # ✅ Remove epidemic card from the game by tracking it explicitly
+        data_unloader.epidemiccard_discard.append(card)
+        handle_epidemic(player_id)
+    else:
+        hand.append(card)
 
     # Update text on the map to reflect new hand size
     world_map_drawer.update_text(player_id)
@@ -325,12 +323,11 @@ playercards_drawn = 0
 def draw_player_card() -> None:
     """Draw a player card for the current player."""
     global playercards_drawn
+    check_game_over()
     if playercards_drawn<remaining_player_cards:
         drawing_phase()
         playercards_drawn += 1
         print("Drawing playercard!")
-    else:
-        print("No more cards to draw!")
 
 infectioncards_drawn = 0
 
@@ -350,7 +347,7 @@ def transition_to_next_phase():
     reset_card_draws()  # Reset the draws for the new phase
     # Additional logic for transitioning phases can go here
 
-def handle_epidemic():
+def handle_epidemic(player_id):
     """
     Handles the effects of an epidemic card:
     1. Increase infection rate
@@ -358,7 +355,7 @@ def handle_epidemic():
     3. Intensify (shuffle discard pile and place it on top)
     """
     # 1. Increase infection rate marker
-    data_unloader.infection_rate_marker = min(data_unloader.infection_rate_marker + 1, 6)
+    data_unloader.infection_rate_marker += 1
 
     # 2. Infect: Draw bottom card from infection deck
     if data_unloader.infections:
@@ -370,15 +367,31 @@ def handle_epidemic():
         print(f"☣️ Epidemic in {city}! Adding 3 {color} cubes.")
 
         current_level = data_unloader.cities[city]["infection_levels"][color_index]
-        new_level = min(current_level + 3, 3)
-        data_unloader.cities[city]["infection_levels"][color_index] = new_level
-        data_unloader.infection_cubes[color_index] -= min(3, 3 - current_level)
+        cubes_to_add = 3
+
+        if current_level + cubes_to_add > 3:
+            # Outbreak should happen
+            cubes_added = 3 - current_level  # Only add up to 3
+            data_unloader.cities[city]["infection_levels"][color_index] = 3
+            data_unloader.infection_cubes[color_index] -= cubes_added
+            check_game_over()
+            trigger_outbreak(city, color_index)
+        else:
+            # No outbreak, normal infection
+            data_unloader.cities[city]["infection_levels"][color_index] = current_level + cubes_to_add
+            data_unloader.infection_cubes[color_index] -= cubes_to_add
+            check_game_over()
 
         data_unloader.infection_discard.append(bottom_card)
-    else:
-        print("⚠️ No more infection cards!")
 
     # 3. Intensify: Shuffle discard pile and place on top
     random.shuffle(data_unloader.infection_discard)
     data_unloader.infections = data_unloader.infection_discard + data_unloader.infections
     data_unloader.infection_discard.clear()
+    world_map_drawer.update_text(player_id)
+
+def trigger_outbreak(city_name, color_index):
+    colors = ["yellow", "red", "blue", "black"]
+    color = colors[color_index]
+    print(f"💥 Outbreak of {color} in {city_name}!")
+    # TODO: Handle outbreak spread to connected cities, track outbreak count, etc.
