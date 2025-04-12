@@ -211,7 +211,7 @@ def assign_player_roles():
 
     return in_game_roles  # Use this list throughout the game
 
-assign_player_roles()
+in_game_roles = assign_player_roles()
 
 def finalize_player_deck():
     """Adds epidemic cards and shuffles the remaining deck."""
