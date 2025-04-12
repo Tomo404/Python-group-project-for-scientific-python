@@ -252,9 +252,10 @@ def player_hand_popup():
         tk.Label(popup2, text="Players' Hands", font=("Arial", 12, "bold")).pack(pady=5)
 
         # Loop through each player and list their cards
-        for player_id, hand in enumerate(data_unloader.players_hands):
+        for player_id, role in enumerate(data_unloader.in_game_roles):  # or player_roles
+            hand = data_unloader.players_hands[player_id]
             if hand:  # Only show players who have cards
-                tk.Label(popup2, text=f"Player {player_id + 1}:", font=("Arial", 11, "bold")).pack(pady=3)
+                tk.Label(popup2, text=f"Player {player_id + 1}: {role}", font=("Arial", 11, "bold")).pack(pady=3)
                 for card in hand:
                     tk.Label(popup2, text=card, font=("Arial", 10)).pack(anchor="center", padx=20)
 
