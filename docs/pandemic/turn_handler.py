@@ -8,7 +8,7 @@ BUILDING_DOCS = os.environ.get("READTHEDOCS") == "True" or "sphinx" in sys.modul
 if not BUILDING_DOCS:
     root = world_map_drawer.root
 players = data_unloader.in_game_roles
-current_player_index = 0
+current_player_index = world_map_drawer.player_id
 
 def check_button_click():
     match True:
