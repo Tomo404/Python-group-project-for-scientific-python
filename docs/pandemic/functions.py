@@ -7,6 +7,7 @@ from functools import partial
 import random
 import os
 import sys
+import time
 
 BUILDING_DOCS = os.environ.get("READTHEDOCS") == "True" or "sphinx" in sys.modules
 # Define global variables to track remaining cards and actions
@@ -68,9 +69,13 @@ if not BUILDING_DOCS:
 
                     def confirm_destination():
                         destination = city_var.get()
-                        messagebox.showinfo("Charter Flight", f"You will fly to {destination}.")
-                        # Optionally move the player here, or return value for game logic
-                        dest_popup.destroy()
+                        if destination == current_city:
+                            messagebox.showerror("Invalid Selection",
+                                                 f"You must choose another city that is not {current_city}.")
+                        else:
+                            messagebox.showinfo("Charter Flight", f"You will fly to {destination}.")
+                            # Optionally move the player here, or return value for game logic
+                            dest_popup.destroy()
 
                     tk.Button(dest_popup, text="Confirm", command=confirm_destination).pack(pady=10)
                     dest_popup.grab_set()
@@ -92,17 +97,17 @@ if not BUILDING_DOCS:
                                          f"You can only build a research center in your current city: {current_city}.")
                     return
 
-                if data_unloader.cities[current_city]["research"] == 1:
+                if data_unloader.cities[current_city]["research_center"] == 1:
                     messagebox.showinfo("Already Present", f"There is already a research center in {current_city}.")
                     return
 
                 # Count total research centers
-                total_research_centers = sum(city_data["research"] for city_data in data_unloader.cities.values())
+                total_research_centers = sum(city_data["research_center"] for city_data in data_unloader.cities.values())
 
                 if total_research_centers >= 6:
                     # Let player choose one to remove
                     other_cities = [name for name, data in data_unloader.cities.items()
-                                    if data["research"] == 1 and name != current_city]
+                                    if data["research_center"] == 1 and name != current_city]
 
                     def choose_research_center_to_remove():
                         select_popup = tk.Toplevel()
@@ -117,8 +122,8 @@ if not BUILDING_DOCS:
 
                         def confirm_removal():
                             chosen_city = removable_city.get()
-                            data_unloader.cities[chosen_city]["research"] = 0
-                            data_unloader.cities[current_city]["research"] = 1
+                            data_unloader.cities[chosen_city]["research_center"] = 0
+                            data_unloader.cities[current_city]["research_center"] = 1
                             messagebox.showinfo("Moved", f"Moved research center from {chosen_city} to {current_city}.")
                             select_popup.destroy()
 
@@ -129,7 +134,7 @@ if not BUILDING_DOCS:
                     choose_research_center_to_remove()
                 else:
                     # Add research center normally
-                    data_unloader.cities[current_city]["research"] = 1
+                    data_unloader.cities[current_city]["research_center"] = 1
                     messagebox.showinfo("Built", f"Research center built in {current_city}.")
 
             elif purpose == "card_overflow":
@@ -197,10 +202,33 @@ def reset_card_draws():
     remaining_infection_cards = data_unloader.infection_rate_marker_amount[data_unloader.infection_rate_marker]  # Set infection card draws based on infection rate
     data_unloader.actions = 4
 
-def drive_ferry() -> None:
-    if world_map_drawer.can_perform_action():
+def drive_ferry(player_id) -> None:
+    if world_map_drawer.can_perform_action() and not BUILDING_DOCS:
         """Perform the Drive/Ferry action."""
         print("Drive/Ferry action triggered!")
+        current_city = data_unloader.players_locations[player_id]
+        neighbors = data_unloader.cities[current_city]["relations"]
+
+        popup = tk.Toplevel()
+        popup.title("Drive/Ferry - Select destination")
+        popup.geometry("300x200")
+
+        tk.Label(popup, text=f"Currently in: {current_city}", font=("Arial", 10, "bold")).pack(pady=5)
+        tk.Label(popup, text="Select a destination:", font=("Arial", 10)).pack()
+
+        def handle_selection(destination):
+            print(f"Player {player_id} moving from {current_city} to {destination}")
+            data_unloader.players_locations[player_id] = destination
+            messagebox.showinfo("Drive/Ferry", f"You moved from {current_city} to {destination}.")
+            popup.destroy()
+
+        for city in neighbors:
+            tk.Button(
+                popup,
+                text=city,
+                width=25,
+                command=lambda c=city: handle_selection(c)
+            ).pack(pady=3)
 
 def direct_flight(player_id) -> None:
     if world_map_drawer.can_perform_action():
@@ -256,28 +284,25 @@ def drawing_phase() -> None:
     Execute the drawing phase for the current player.
     Draws 2 player cards, handles epidemic logic, and transitions to infection phase.
     """
-    import time
-
     player_id = world_map_drawer.current_playerturn
     hand = data_unloader.players_hands[player_id]
 
-    for _ in range(remaining_player_cards):
-        if not data_unloader.player_deck:
-            print("🔚 Player deck is empty! Game over.")
-            world_map_drawer.update_game_text("Game Over – player deck exhausted!")
-            return
+    if not data_unloader.player_deck:
+        print("🔚 Player deck is empty! Game over.")
+        world_map_drawer.update_game_text("Game Over – player deck exhausted!")
+        return
 
-        card = data_unloader.player_deck.pop(0)
-        print(f"🎴 Player {player_id + 1} drew: {card['name']}")
+    card = data_unloader.player_deck.pop(0)
+    print(f"🎴 Player {player_id + 1} drew: {card['name']}")
 
-        if card["name"] == "Epidemic":
-            print("🧨 Epidemic card drawn!")
-            world_map_drawer.update_game_text("Epidemic! Increase, Infect, and Intensify")
-            handle_epidemic()
-            # ✅ Remove epidemic card from the game by tracking it explicitly
-            data_unloader.epidemiccard_discard.append(card)
-        else:
-            hand.append(card)
+    if card["name"] == "Epidemic":
+        print("🧨 Epidemic card drawn!")
+        world_map_drawer.update_game_text("Epidemic! Increase, Infect, and Intensify")
+        # ✅ Remove epidemic card from the game by tracking it explicitly
+        data_unloader.epidemiccard_discard.append(card)
+        handle_epidemic(player_id)
+    else:
+        hand.append(card)
 
     # Update text on the map to reflect new hand size
     world_map_drawer.update_text(player_id)
@@ -298,12 +323,11 @@ playercards_drawn = 0
 def draw_player_card() -> None:
     """Draw a player card for the current player."""
     global playercards_drawn
+    check_game_over()
     if playercards_drawn<remaining_player_cards:
         drawing_phase()
         playercards_drawn += 1
         print("Drawing playercard!")
-    else:
-        print("No more cards to draw!")
 
 infectioncards_drawn = 0
 
@@ -323,7 +347,7 @@ def transition_to_next_phase():
     reset_card_draws()  # Reset the draws for the new phase
     # Additional logic for transitioning phases can go here
 
-def handle_epidemic():
+def handle_epidemic(player_id):
     """
     Handles the effects of an epidemic card:
     1. Increase infection rate
@@ -331,7 +355,7 @@ def handle_epidemic():
     3. Intensify (shuffle discard pile and place it on top)
     """
     # 1. Increase infection rate marker
-    data_unloader.infection_rate_marker = min(data_unloader.infection_rate_marker + 1, 6)
+    data_unloader.infection_rate_marker += 1
 
     # 2. Infect: Draw bottom card from infection deck
     if data_unloader.infections:
@@ -343,15 +367,31 @@ def handle_epidemic():
         print(f"☣️ Epidemic in {city}! Adding 3 {color} cubes.")
 
         current_level = data_unloader.cities[city]["infection_levels"][color_index]
-        new_level = min(current_level + 3, 3)
-        data_unloader.cities[city]["infection_levels"][color_index] = new_level
-        data_unloader.infection_cubes[color_index] -= min(3, 3 - current_level)
+        cubes_to_add = 3
+
+        if current_level + cubes_to_add > 3:
+            # Outbreak should happen
+            cubes_added = 3 - current_level  # Only add up to 3
+            data_unloader.cities[city]["infection_levels"][color_index] = 3
+            data_unloader.infection_cubes[color_index] -= cubes_added
+            check_game_over()
+            trigger_outbreak(city, color_index)
+        else:
+            # No outbreak, normal infection
+            data_unloader.cities[city]["infection_levels"][color_index] = current_level + cubes_to_add
+            data_unloader.infection_cubes[color_index] -= cubes_to_add
+            check_game_over()
 
         data_unloader.infection_discard.append(bottom_card)
-    else:
-        print("⚠️ No more infection cards!")
 
     # 3. Intensify: Shuffle discard pile and place on top
     random.shuffle(data_unloader.infection_discard)
     data_unloader.infections = data_unloader.infection_discard + data_unloader.infections
     data_unloader.infection_discard.clear()
+    world_map_drawer.update_text(player_id)
+
+def trigger_outbreak(city_name, color_index):
+    colors = ["yellow", "red", "blue", "black"]
+    color = colors[color_index]
+    print(f"💥 Outbreak of {color} in {city_name}!")
+    # TODO: Handle outbreak spread to connected cities, track outbreak count, etc.

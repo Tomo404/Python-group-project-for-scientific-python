@@ -72,11 +72,21 @@ infections = load_infections()
 infection_discard = []  # Discard pile for used infection cards
 playercard_discard = []
 epidemiccard_discard = []
+wwidth = 0
+wheight = 0
 def set_game_settings():
     """Asks for player count and epidemic cards with validation."""
-    global players, epidemic_cards
-
+    global players, epidemic_cards, wwidth, wheight
     if not os.environ.get("READTHEDOCS"):
+        while True:
+            try:
+                wwidth = int(input("Give screenwidth (1000-1600): "))
+                wheight = int(input("Give screenheight (600-800): "))
+                if 1000<=wwidth<=1600 and 600<=wheight<=800:
+                    break
+                print("❌ Invalid input! Please enter correct screen dimensions.")
+            except ValueError:
+                print("❌ Invalid input! Please enter valid numbers.")
             # Validate player count (between 2 and 4)
         while True:
             try:
@@ -99,6 +109,8 @@ def set_game_settings():
     else:
         epidemic_cards = 4 # Set a default value for documentation
         players = 2 # Set a default value for documentation
+        wwidth = 1550
+        wheight = 800
 
     print(f"✅ Game settings: {players} players, {epidemic_cards} epidemic cards.")
 
@@ -211,7 +223,7 @@ def assign_player_roles():
 
     return in_game_roles  # Use this list throughout the game
 
-assign_player_roles()
+in_game_roles = assign_player_roles()
 
 def finalize_player_deck():
     """Adds epidemic cards and shuffles the remaining deck."""

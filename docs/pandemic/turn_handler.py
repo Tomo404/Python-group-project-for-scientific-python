@@ -8,32 +8,7 @@ BUILDING_DOCS = os.environ.get("READTHEDOCS") == "True" or "sphinx" in sys.modul
 if not BUILDING_DOCS:
     root = world_map_drawer.root
 players = data_unloader.in_game_roles
-current_player_index = 0
-
-def check_button_click():
-    match True:
-        case world_map_drawer.handle_click("drive_ferry"):
-            functions.drive_ferry()
-        case world_map_drawer.handle_click("direct_flight"):
-            functions.direct_flight(current_player_index)
-        case world_map_drawer.handle_click("charter_flight"):
-            functions.charter_flight(current_player_index)
-        case world_map_drawer.handle_click("shuttle_flight"):
-            functions.shuttle_flight()
-        case world_map_drawer.handle_click("build_research_center"):
-            functions.build_research_center(current_player_index)
-        case world_map_drawer.handle_click("treat_disease"):
-            functions.treat_disease()
-        case world_map_drawer.handle_click("share_knowledge"):
-            functions.share_knowledge()
-        case world_map_drawer.handle_click("discover_cure"):
-            functions.discover_cure()
-        case world_map_drawer.handle_click("play_event_card"):
-            functions.play_event_card()
-        case world_map_drawer.handle_click("skip_turn"):
-            functions.skip_turn()
-        case _:
-            print("Unknown button clicked!")
+current_player_index = world_map_drawer.player_id
 
 def next_turn():
     global current_player_index
