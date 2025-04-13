@@ -61,7 +61,7 @@ def can_perform_action():
         update_text(player_id) # Ensure UI updates
         return True
     else:
-        import functions
+        from pandemic import functions
         print("No remaining actions!")
         functions.skip_turn()  # Ends turn if actions are exhausted
         return False
@@ -265,7 +265,7 @@ if not BUILDING_DOCS:
 
 def handle_click(action):
     """Handles button clicks by executing the corresponding action."""
-    import functions
+    from pandemic import functions
     if action in functions.__dict__:
         functions.__dict__[action](player_id)  # Calls the function dynamically
     elif action in globals():
