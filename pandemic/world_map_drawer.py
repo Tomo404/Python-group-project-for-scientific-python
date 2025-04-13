@@ -342,9 +342,16 @@ def setup_shuttle_flight_popup():
     player_id = world_map_drawer.current_playerturn
     current_city = data_unloader.players_locations[player_id]
 
+    # Check if current city has a research center
+    if not data_unloader.cities[current_city]["research_center"]:
+        popup.destroy()
+        tk.messagebox.showinfo("Invalid Action",
+                               f"You can only use Shuttle Flight from a city with a research center.\n{current_city} has none.")
+        return
+
     # Find valid destination cities (with research centers, excluding current city)
     destination_cities = [city for city, info in data_unloader.cities.items()
-                          if info["research"] == 1 and city != current_city]
+                          if info["research_center"] == 1 and city != current_city]
 
     if not destination_cities:
         Label(popup, text="No valid destinations.").pack(pady=20)
