@@ -203,7 +203,7 @@ def reset_card_draws():
     data_unloader.actions = 4
 
 def drive_ferry(player_id) -> None:
-    if world_map_drawer.can_perform_action():
+    if world_map_drawer.can_perform_action() and not BUILDING_DOCS:
         """Perform the Drive/Ferry action."""
         print("Drive/Ferry action triggered!")
         current_city = data_unloader.players_locations[player_id]
