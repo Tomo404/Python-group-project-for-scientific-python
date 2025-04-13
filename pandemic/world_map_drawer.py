@@ -61,7 +61,7 @@ def can_perform_action():
         update_text(player_id) # Ensure UI updates
         return True
     else:
-        from pandemic import functions
+        import functions
         print("No remaining actions!")
         functions.skip_turn()  # Ends turn if actions are exhausted
         return False
@@ -252,7 +252,7 @@ def player_hand_popup():
 
         # Loop through each player and list their cards
         for player_id, role in enumerate(data_unloader.in_game_roles):  # or player_roles
-            hand = data_unloader.players_hands[player_id]
+            hand = data_unloader.current_hand
             if hand:  # Only show players who have cards
                 tk.Label(popup2, text=f"Player {player_id + 1}: {role}", font=("Arial", 11, "bold")).pack(pady=3)
                 for card in hand:
@@ -450,6 +450,9 @@ def update_game_text(message):
             font=("Arial", int(15 * scale_factor), "bold"),
             fill="black"
         )
+
+def rotate_player_hand(player_id):
+    data_unloader.current_hand = data_unloader.players_hands[player_id]
 
 if not BUILDING_DOCS:
     try:
