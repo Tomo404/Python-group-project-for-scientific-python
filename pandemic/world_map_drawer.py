@@ -9,17 +9,18 @@ import sys
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 BUILDING_DOCS = os.environ.get("READTHEDOCS") == "True" or "sphinx" in sys.modules
 scale_factor = 1
-x_offset = 1
-y_offset = 1
+x_offset = 0
+y_offset = 0
+window_width = data_unloader.wwidth
+window_height = data_unloader.wheight
+
 if not BUILDING_DOCS:
     root = tk.Tk()
-    window_width, window_height = 1550, 800
     canvas = tk.Canvas(root, width=window_width, height=window_height)
     # Load image
     image_path = os.path.join(BASE_DIR, "..", "pictures", "world_map.png")
     pil_image = Image.open(image_path)
     img_width, img_height = pil_image.size  # Get image size
-
     # Scale image while maintaining aspect ratio
     scale_factor = min(window_width / img_width, window_height / img_height)
     new_width = int(img_width * scale_factor)
@@ -33,7 +34,6 @@ if not BUILDING_DOCS:
 
     x_offset = (window_width - new_width) // 2
     y_offset = (window_height - new_height) // 2
-
     background_image = None
     map_image = None
 
@@ -89,7 +89,7 @@ def update_research_centers():
             scaled_y = int(y * scale_factor) + y_offset
 
             # Define the outline size
-            outline_size = 12  # Slightly larger than the base city marker
+            outline_size = int(16 * scale_factor)  # Slightly larger than the base city marker
 
             # Draw only the white outline
             marker_id = canvas.create_oval(
@@ -122,7 +122,7 @@ def show_infections(event):
         offsets = [(-4, -4), (4, -4), (-4, 4), (4, 4)]  # 4 quarters
         for v in range(4):  # 4 infection types
             for _ in range(levels[v]): # One marker per infection level
-                bubblesize = 4 + (levels[v] - 1) * 2  # Scale size with infections
+                bubblesize = int((4 + (levels[v] - 1) * 2) * scale_factor)  # Scale size with infections
                 marker = canvas.create_oval(
                     scale_x + offsets[v][0] - bubblesize, scale_y + offsets[v][1] - bubblesize,
                     scale_x + offsets[v][0] + bubblesize, scale_y + offsets[v][1] + bubblesize,
@@ -144,7 +144,7 @@ def show_infection_popup(event):
     if not BUILDING_DOCS:
         popup = tk.Toplevel(root)
         popup.title("Infection Overview")
-        popup.geometry("400x400")  # Adjusted size for better readability
+        popup.geometry("400x600")  # Adjusted size for better readability
 
         colors = ["Yellow", "Red", "Blue", "Black"]
         tk.Label(popup, text="City Infections by Disease Type", font=("Arial", 12, "bold")).pack(pady=5)
@@ -157,9 +157,8 @@ def show_infection_popup(event):
                 tk.Label(popup, text=", ".join(infected_cities), font=("Arial", 10), wraplength=350, justify="left").pack(anchor="w", padx=20)
 
 if not BUILDING_DOCS:
-    # Create the hover and pop-up button
     hover_button = tk.Button(root, text="Show Infections", bg="green3", fg="black")
-    canvas.create_window(575, 710, window=hover_button)
+    canvas.create_window(4+(495 * scale_factor) + x_offset, (1070 * scale_factor) + y_offset, window=hover_button, width = 180 * scale_factor, height = 60 * scale_factor)
     hover_button.bind("<Button-1>", show_infection_popup)  # Left-click opens popup
 
     # Bind hover events
@@ -175,16 +174,16 @@ def draw_initial_text():
         global text_elements
         i = data_unloader.infection_rate_marker  # Infection rate index
 
-        text_elements["infection_rate"] = canvas.create_text(930, 132, text=f"{data_unloader.infection_rate_marker_amount[i]}", font=("Arial", 18, "bold"), fill="black")
-        text_elements["research_centers"] = canvas.create_text(1255, 635, text=f" x {data_unloader.research_centers}", font=("Arial", 24, "bold"), fill="black")
-        text_elements["infection_yellow"] = canvas.create_text(1255, 671, text=f" x {data_unloader.infection_cubes[0]}", font=("Arial", 18, "bold"), fill="black")
-        text_elements["infection_red"] = canvas.create_text(1255, 704, text=f" x {data_unloader.infection_cubes[1]}", font=("Arial", 18, "bold"), fill="black")
-        text_elements["infection_blue"] = canvas.create_text(1255, 737, text=f" x {data_unloader.infection_cubes[2]}", font=("Arial", 18, "bold"), fill="black")
-        text_elements["infection_black"] = canvas.create_text(1255, 770, text=f" x {data_unloader.infection_cubes[3]}", font=("Arial", 18, "bold"), fill="black")
-        text_elements["remaining_actions"] = canvas.create_text(572, 626, text=f" remaining actions: {data_unloader.actions}", font=("Arial", 8, "bold"), fill="black")
-        text_elements["hand_size"] = canvas.create_text(572, 645, text=f" hand size: {len(data_unloader.players_hands[0])}", font=("Arial", 8, "bold"), fill="black")
-        text_elements["player_deck"] = canvas.create_text(572, 663, text=f" player cards: {len(data_unloader.player_deck)}", font=("Arial", 8, "bold"), fill="black")
-        text_elements["player_city"] = canvas.create_text(572, 680, text=f" city: {data_unloader.players_locations[0]}", font=("Arial", 8, "bold"), fill="black")
+        text_elements["infection_rate"] = canvas.create_text((1034 * scale_factor) + x_offset, (198 * scale_factor) + y_offset, text=f"{data_unloader.infection_rate_marker_amount[i]}", font=("Arial", int(27 * scale_factor), "bold"), fill="black")
+        text_elements["research_centers"] = canvas.create_text((1520 * scale_factor) + x_offset, (954 * scale_factor) + y_offset, text=f" x {data_unloader.research_centers}", font=("Arial", int(36 * scale_factor), "bold"), fill="black")
+        text_elements["infection_yellow"] = canvas.create_text((1520 * scale_factor) + x_offset, (1004 * scale_factor) + y_offset, text=f" x {data_unloader.infection_cubes[0]}", font=("Arial", int(27 * scale_factor), "bold"), fill="black")
+        text_elements["infection_red"] = canvas.create_text((1520 * scale_factor) + x_offset, (1054 * scale_factor) + y_offset, text=f" x {data_unloader.infection_cubes[1]}", font=("Arial", int(27 * scale_factor), "bold"), fill="black")
+        text_elements["infection_blue"] = canvas.create_text((1520 * scale_factor) + x_offset, (1104 * scale_factor) + y_offset, text=f" x {data_unloader.infection_cubes[2]}", font=("Arial", int(27 * scale_factor), "bold"), fill="black")
+        text_elements["infection_black"] = canvas.create_text((1520 * scale_factor) + x_offset, (1154 * scale_factor) + y_offset, text=f" x {data_unloader.infection_cubes[3]}", font=("Arial", int(27 * scale_factor), "bold"), fill="black")
+        text_elements["remaining_actions"] = canvas.create_text((501 * scale_factor) + x_offset, (938 * scale_factor) + y_offset, text=f" remaining actions: {data_unloader.actions}", font=("Arial", int(12 * scale_factor), "bold"), fill="black")
+        text_elements["hand_size"] = canvas.create_text((501 * scale_factor) + x_offset, (963 * scale_factor) + y_offset, text=f" hand size: {len(data_unloader.players_hands[0])}", font=("Arial", int(12 * scale_factor), "bold"), fill="black")
+        text_elements["player_deck"] = canvas.create_text((501 * scale_factor) + x_offset, (988 * scale_factor) + y_offset, text=f" player cards: {len(data_unloader.player_deck)}", font=("Arial", int(12 * scale_factor), "bold"), fill="black")
+        text_elements["player_city"] = canvas.create_text((501 * scale_factor) + x_offset, (1013 * scale_factor) + y_offset, text=f" city: {data_unloader.players_locations[0]}", font=("Arial", int(12 * scale_factor), "bold"), fill="black")
 
 def update_text(current_player_id):
     if not BUILDING_DOCS:
@@ -232,7 +231,7 @@ def update_player_marker(player_id, new_city):
             canvas.delete(player_markers[player_id])
 
         # Draw the new marker at the updated location
-        new_marker = canvas.create_oval(city_x - 5, city_y - 5, city_x + 5, city_y + 5, fill=role_color, outline="black")
+        new_marker = canvas.create_oval(city_x - int(7.5 * scale_factor), city_y - int(7.5 * scale_factor), city_x + int(7.5 * scale_factor), city_y + int(7.5 * scale_factor), fill=role_color, outline="black")
 
         # Store the new marker
         player_markers[player_id] = new_marker
@@ -249,7 +248,7 @@ def player_hand_popup():
         popup2 = tk.Toplevel(root)
         popup2.title("Player Hands")
         popup2.geometry("700x400")  # Adjust window size
-        tk.Label(popup2, text="Players' Hands", font=("Arial", 12, "bold")).pack(pady=5)
+        tk.Label(popup2, text="Players' Hands", font=("Arial", int(18 * scale_factor), "bold")).pack(pady=5)
 
         # Loop through each player and list their cards
         for player_id, role in enumerate(data_unloader.in_game_roles):  # or player_roles
@@ -261,7 +260,7 @@ def player_hand_popup():
 
 if not BUILDING_DOCS:
     # Create the button properly
-    player_button = tk.Button(root, text="Show Player's Hand", command=player_hand_popup, bg="grey30", fg="black", width=24, height=8, font=("Arial", 12, "bold"))
+    player_button = tk.Button(root, text="Show Player's Hand", command=player_hand_popup, bg="grey30", fg="black", width=int(36 * scale_factor), height=int(12 * scale_factor), font=("Arial", int(18 * scale_factor), "bold"))
     canvas.create_window((1199 * scale_factor) + x_offset, (1056 * scale_factor) + y_offset, window=player_button)
 
 def handle_click(action):
@@ -276,19 +275,19 @@ def handle_click(action):
 
 def setup_buttons(event):
     if not BUILDING_DOCS:
-        button_width = 120  # Approximate width of the buttons
-        button_height = 20  # Approximate height of the buttons
+        button_width = 180 * scale_factor  # Approximate width of the buttons
+        button_height = 30 * scale_factor  # Approximate height of the buttons
 
         buttons = [
-            ("Drive/Ferry", 440, 625, "drive_ferry"),
-            ("Direct Flight", 440, 647, "direct_flight"),
-            ("Charter Flight", 440, 669, "charter_flight"),
-            ("Shuttle Flight", 440, 691, "shuttle_flight"),
-            ("Build R.C.", 440, 713, "build_research_center"),
-            ("Treat Disease", 440, 735, "treat_disease"),
-            ("Share Knowledge", 440, 757, "share_knowledge"),
-            ("Discover Cure", 440, 779, "discover_cure"),
-            ("Play Event Card", 573, 774, "play_event_card")
+            ("Drive/Ferry", (295 * scale_factor) + x_offset, (940 * scale_factor) + y_offset, "drive_ferry"),
+            ("Direct Flight", (295 * scale_factor) + x_offset, (972 * scale_factor) + y_offset, "direct_flight"),
+            ("Charter Flight", (295 * scale_factor) + x_offset, (1004 * scale_factor) + y_offset, "charter_flight"),
+            ("Shuttle Flight", (295 * scale_factor) + x_offset, (1036 * scale_factor) + y_offset, "shuttle_flight"),
+            ("Build R.C.", (295 * scale_factor) + x_offset, (1068 * scale_factor) + y_offset, "build_research_center"),
+            ("Treat Disease", (295 * scale_factor) + x_offset, (1100 * scale_factor) + y_offset, "treat_disease"),
+            ("Share Knowledge", (295 * scale_factor) + x_offset, (1132 * scale_factor) + y_offset, "share_knowledge"),
+            ("Discover Cure", (295 * scale_factor) + x_offset, (1164 * scale_factor) + y_offset, "discover_cure"),
+            ("Play Event Card", (495 * scale_factor) + x_offset, (1164 * scale_factor) + y_offset, "play_event_card")
         ]
 
         for text, x, y, action in buttons:
@@ -300,9 +299,11 @@ def setup_skip_turn_button(event):
     if not BUILDING_DOCS:
         skip_button = tk.Button(root, text="Skip Turn", font=("Arial", 8), bg="grey30", fg="black",
                                 command=lambda: handle_click("skip_turn"))
-        button_width = 120
-        button_height = 20
-        skip_button.place(x=4 + 573 - button_width // 2, y=744 - button_height // 2, width=button_width, height=button_height)
+        button_width = 180 * scale_factor
+        button_height = 30 * scale_factor
+        x = (495 * scale_factor) + x_offset
+        y = (1122 * scale_factor) + y_offset
+        skip_button.place(x=4 + x - button_width // 2, y=y - button_height // 2, width=button_width, height=button_height)
 
 outbreak_marker_id = None
 outbreak_marker = 0
@@ -325,7 +326,7 @@ def update_outbreak_marker():
             x, y = (157 * scale_factor) + x_offset, (547 * scale_factor) + y_offset
 
         # Draw the new outbreak marker and store its ID
-        outbreak_marker_id = canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill="green4", outline="black")
+        outbreak_marker_id = canvas.create_oval(x - int(7.5 * scale_factor), y - int(7.5 * scale_factor), x + int(7.5 * scale_factor), y + int(7.5 * scale_factor), fill="green4", outline="black")
 
 cure_markers = [((695 * scale_factor) + x_offset, (1049 * scale_factor) + y_offset),
                 ((761 * scale_factor) + x_offset, (1049 * scale_factor) + y_offset),
@@ -348,8 +349,8 @@ def update_disease_status(disease_index):
 
         # Draw over the existing marker
         canvas.create_oval(
-            cure_markers[disease_index][0] - 10, cure_markers[disease_index][1] - 10,
-            cure_markers[disease_index][0] + 10, cure_markers[disease_index][1] + 10,
+            cure_markers[disease_index][0] - int(15 * scale_factor), cure_markers[disease_index][1] - int(15 * scale_factor),
+            cure_markers[disease_index][0] + int(15 * scale_factor), cure_markers[disease_index][1] + int(15 * scale_factor),
             fill=color, width=2
         )
 
@@ -379,7 +380,7 @@ def load_role_images():
                 img_path = os.path.join(os.path.dirname(__file__), "../pictures", filename)
 
                 img = Image.open(img_path)
-                img = img.resize((100, 140))  # Resize to fit UI
+                img = img.resize((int(150 * scale_factor), int(210 * scale_factor)))  # Resize to fit UI
 
                 role_images[role] = ImageTk.PhotoImage(img)
 
@@ -421,8 +422,8 @@ def update_player_portrait(canvas, current_player, iter):
         role_color2 = role_colors.get(role, "pink")  # Default to gray if role not found
 
         current_playerid = canvas.create_text((98 * scale_factor) + x_offset, (936 * scale_factor) + y_offset, text=f"Player {iter}", font=("Arial", 8), fill="black")
-        canvas.create_oval((98 * scale_factor+30) + x_offset - 5, (936 * scale_factor) + y_offset - 5,
-                           (98 * scale_factor+30) + x_offset + 5, (936 * scale_factor) + y_offset + 5, fill=role_color2, outline="black")
+        canvas.create_oval((98 * scale_factor+30) + x_offset - int(7.5 * scale_factor), (936 * scale_factor) + y_offset - int(7.5 * scale_factor),
+                           (98 * scale_factor+30) + x_offset + int(7.5 * scale_factor), (936 * scale_factor) + y_offset + int(7.5 * scale_factor), fill=role_color2, outline="black")
 
 # Load images before displaying them
 #To check if the data is being updated in the cities database
@@ -446,7 +447,7 @@ def update_game_text(message):
         current_game_text = canvas.create_text(
             turn_text_x, turn_text_y,
             text=message,
-            font=("Arial", 10, "bold"),
+            font=("Arial", int(15 * scale_factor), "bold"),
             fill="black"
         )
 
@@ -457,10 +458,10 @@ if not BUILDING_DOCS:
         player_img_path = os.path.join(os.path.dirname(__file__), "../pictures/player_card_back.png")
 
         original_infection = Image.open(infection_img_path)
-        resized_infection = original_infection.resize((original_infection.width + 10, original_infection.height - 5))
+        resized_infection = original_infection.resize((int((original_infection.width + 134) * scale_factor), int((original_infection.height + 76) * scale_factor)))
 
         original_player = Image.open(player_img_path)
-        resized_player = original_player.resize((original_player.width - 25, original_player.height - 25))
+        resized_player = original_player.resize((int((original_player.width + 46) * scale_factor), int((original_player.height + 67) * scale_factor)))
 
         # Convert to Tk images
         button_background_image2 = ImageTk.PhotoImage(resized_infection)
@@ -473,7 +474,11 @@ if not BUILDING_DOCS:
             text="Draw Infection Card",
             compound="center",
             fg="white",
-            font=("Arial", 12, "bold"),
+            bg="#44B996",
+            activebackground="SystemButtonFace",
+            borderwidth=0,
+            highlightthickness=0,
+            font=("Arial", int(18 * scale_factor), "bold"),
             relief="flat",
             command=lambda: handle_click("draw_infection_card")
         )
@@ -483,7 +488,11 @@ if not BUILDING_DOCS:
             text="Draw Player Card",
             compound="center",
             fg="white",
-            font=("Arial", 12, "bold"),
+            bg="#163B66",
+            activebackground="SystemButtonFace",
+            borderwidth=0,
+            highlightthickness=1,
+            font=("Arial", int(18 * scale_factor), "bold"),
             relief="flat",
             command=lambda: handle_click("draw_player_card")
         )
@@ -514,7 +523,5 @@ def start_gui(next_turn_callback):
     update_outbreak_marker()
     initialize_disease_status()
     load_role_images()
-
     root.after(1000, next_turn_callback)  # schedule game start
     root.mainloop()
-    
