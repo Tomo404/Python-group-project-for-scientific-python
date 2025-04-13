@@ -23,7 +23,8 @@ def next_turn():
     current_city = data_unloader.players_locations[player_id]
     world_map_drawer.update_player_marker(player_id, current_city)
     current_player_index = (current_player_index + 1) % len(players)
-    world_map_drawer.root.after(data_unloader.actions * 10000, next_turn)
+    world_map_drawer.rotate_player_hand(current_player_index)
+    world_map_drawer.root.after(data_unloader.actions * 2000, next_turn)
 
 ### --- ✅ INITIALIZE EVERYTHING --- ###
 if not BUILDING_DOCS:
