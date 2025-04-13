@@ -214,6 +214,7 @@ def deal_starting_hands():
                 players_hands[player].append(card)
 
 deal_starting_hands()  # Give players their starting hands
+current_hand = []
 
 def assign_player_roles():
     """Randomly assigns unique roles to players and stores them in `in_game_roles`."""
