@@ -18,7 +18,7 @@ game_over = False # A variable signalling game over
 if not BUILDING_DOCS:
     def discard(player_id, amount_to_discard, purpose):
         # Get the current player's hand
-        player_hand = data_unloader.players_hands[player_id]
+        player_hand = data_unloader.current_hand
         selected_cards = []
 
         def submit_selection():
@@ -203,7 +203,7 @@ def reset_card_draws():
     data_unloader.actions = 4
 
 def drive_ferry(player_id) -> None:
-    if world_map_drawer.can_perform_action() and not BUILDING_DOCS:
+    if world_map_drawer.can_perform_action():
         """Perform the Drive/Ferry action."""
         print("Drive/Ferry action triggered!")
         current_city = data_unloader.players_locations[player_id]
@@ -285,7 +285,7 @@ def drawing_phase() -> None:
     Draws 2 player cards, handles epidemic logic, and transitions to infection phase.
     """
     player_id = world_map_drawer.current_playerturn
-    hand = data_unloader.players_hands[player_id]
+    hand = data_unloader.current_hand
 
     if not data_unloader.player_deck:
         print("🔚 Player deck is empty! Game over.")
