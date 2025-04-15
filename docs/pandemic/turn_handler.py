@@ -9,9 +9,13 @@ if not BUILDING_DOCS:
     root = world_map_drawer.root
 players = data_unloader.in_game_roles
 current_player_index = world_map_drawer.player_id
+turn_timer = None
+game_start = True
+game_started = False  # Flag to ensure we only start the game once
 
 def next_turn():
-    global current_player_index
+    global current_player_index, turn_timer
+
     if functions.check_game_over():
         return
 
@@ -23,18 +27,25 @@ def next_turn():
     current_city = data_unloader.players_locations[player_id]
     world_map_drawer.update_player_marker(player_id, current_city)
     current_player_index = (current_player_index + 1) % len(players)
-    world_map_drawer.rotate_player_hand(current_player_index)
-    world_map_drawer.root.after(data_unloader.actions * 2000, next_turn)
+    world_map_drawer.rotate_player_hand(player_id)
 
-### --- ✅ INITIALIZE EVERYTHING --- ###
-if not BUILDING_DOCS:
-    world_map_drawer.create_window()  # creates root and canvas
-    # Draw the background, buttons, cities, infection markers, and portraits
+def start_game():
+    global game_started
+    if game_started:
+        return
+    game_started = True
 
-    # Ensure the background image is drawn (make sure world_map_drawer.create_window() does it)
-    # If not, call world_map_drawer.draw_map_background() or similar manually
+    print("🎮 Starting Pandemic...")
+    world_map_drawer.create_window()
+    world_map_drawer.start_gui(current_player_index, players[current_player_index])
 
-    world_map_drawer.root.after(0, lambda: world_map_drawer.start_gui(next_turn))
-
-    # Start the Tkinter mainloop
+    # 🚨 Do NOT call `next_turn()` here immediately
+    # We'll call it AFTER start_gui schedules it
     world_map_drawer.root.mainloop()
+
+
+
+if __name__ == "__main__":
+    start_game()
+
+
