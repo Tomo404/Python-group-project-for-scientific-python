@@ -63,7 +63,7 @@ def can_perform_action():
     else:
         import functions
         print("No remaining actions!")
-        functions.skip_turn()  # Ends turn if actions are exhausted
+        functions.skip_turn(player_id)  # Ends turn if actions are exhausted
         return False
 
 # Store references to research center markers
@@ -252,7 +252,7 @@ def player_hand_popup():
 
         # Loop through each player and list their cards
         for player_id, role in enumerate(data_unloader.in_game_roles):  # or player_roles
-            hand = data_unloader.current_hand
+            hand = data_unloader.players_hands[player_id]
             if hand:  # Only show players who have cards
                 tk.Label(popup2, text=f"Player {player_id + 1}: {role}", font=("Arial", 11, "bold")).pack(pady=3)
                 for card in hand:
@@ -517,7 +517,7 @@ if not BUILDING_DOCS:
         print(f"[WARNING] Failed to load button images: {e}")
 
 
-def start_gui(next_turn_callback):
+def start_gui(player_id, player_role):
     create_window()
     update_research_centers()
     draw_initial_text()
@@ -526,5 +526,8 @@ def start_gui(next_turn_callback):
     update_outbreak_marker()
     initialize_disease_status()
     load_role_images()
-    root.after(1000, next_turn_callback)  # schedule game start
-    root.mainloop()
+    update_player_portrait(canvas, player_role, player_id + 1)
+    rotate_player_hand(player_id)
+    from pandemic import turn_handler  # ← avoid circular import early
+    root.after(1000, turn_handler.next_turn)
+
