@@ -14,13 +14,15 @@ BUILDING_DOCS = os.environ.get("READTHEDOCS") == "True" or "sphinx" in sys.modul
 remaining_player_cards = 2  # The number of player cards to draw (fixed)
 remaining_infection_cards = 2  # This depends on the infection rate (can be dynamic)
 game_over = False # A variable signalling game over
+player_draw_locked = False
+playercards_drawn = 0
+infectioncards_drawn = 0
 
 if not BUILDING_DOCS:
     def discard(player_id, amount_to_discard, purpose):
         # Get the current player's hand
         player_hand = data_unloader.current_hand
         selected_cards = []
-
         def submit_selection():
             nonlocal selected_cards
             # Gather the cards selected by the player (checkboxes)
@@ -198,9 +200,13 @@ def check_game_over(): #checks if one of the game over requirements is met: 3 lo
 # Function to reset the card draws at the start of each phase
 def reset_card_draws():
     global remaining_player_cards, remaining_infection_cards
+    global playercards_drawn, infectioncards_drawn, player_draw_locked  # ✅ add this
     remaining_player_cards = 2  # Reset player card draws (fixed)
     remaining_infection_cards = data_unloader.infection_rate_marker_amount[data_unloader.infection_rate_marker]  # Set infection card draws based on infection rate
     data_unloader.actions = 4
+    playercards_drawn = 0
+    infectioncards_drawn = 0
+    player_draw_locked = False
 
 def drive_ferry(player_id) -> None:
     if world_map_drawer.can_perform_action():
@@ -242,7 +248,7 @@ def charter_flight(player_id) -> None:
         print("Charter Flight action triggered!")
         discard(player_id, 1, "charter_flight")
 
-def shuttle_flight() -> None:
+def shuttle_flight(player_id) -> None:
     if world_map_drawer.can_perform_action():
         """Perform the Shuttle Flight action."""
         print("Shuttle Flight action triggered!")
@@ -253,44 +259,38 @@ def build_research_center(player_id) -> None:
         print("Building a Research Center!")
         discard(player_id, 1, "build_research_center")
 
-def treat_disease() -> None:
+def treat_disease(player_id) -> None:
     if world_map_drawer.can_perform_action():
         """Perform the Treat Disease action."""
         print("Treating disease!")
 
-def share_knowledge() -> None:
+def share_knowledge(player_id) -> None:
     if world_map_drawer.can_perform_action():
         """Perform the Share Knowledge action."""
         print("Sharing knowledge!")
 
-def discover_cure() -> None:
+def discover_cure(player_id) -> None:
     if world_map_drawer.can_perform_action():
         """Perform the Discover Cure action."""
         print("Discovering cure!")
 
-def play_event_card() -> None:
+def play_event_card(player_id) -> None:
     if world_map_drawer.can_perform_action():
         """Perform the Play Event Card action."""
         print("Playing an event card!")
 
-def skip_turn() -> None:
+def skip_turn(player_id) -> None:
     """Skip the current player's turn."""
     if data_unloader.actions != 0:
         data_unloader.actions = 0
     print("Turn skipped!")
 
-def drawing_phase() -> None:
+def drawing_phase(player_id) -> None:
     """
     Execute the drawing phase for the current player.
     Draws 2 player cards, handles epidemic logic, and transitions to infection phase.
     """
-    player_id = world_map_drawer.current_playerturn
     hand = data_unloader.current_hand
-
-    if not data_unloader.player_deck:
-        print("🔚 Player deck is empty! Game over.")
-        world_map_drawer.update_game_text("Game Over – player deck exhausted!")
-        return
 
     card = data_unloader.player_deck.pop(0)
     print(f"🎴 Player {player_id + 1} drew: {card['name']}")
@@ -307,9 +307,8 @@ def drawing_phase() -> None:
     # Update text on the map to reflect new hand size
     world_map_drawer.update_text(player_id)
     time.sleep(1.5)  # Small pause for readability
-    infection_phase()  # Proceed to infection phase
 
-def infection_phase() -> None:
+def infection_phase(player_id) -> None:
     """
     Execute the infection phase for the given player.
 
@@ -319,33 +318,39 @@ def infection_phase() -> None:
     print("Player X's infection phase begins.")
     # TODO: Skip if prevention card played
 
-playercards_drawn = 0
-def draw_player_card() -> None:
+def draw_player_card(player_id) -> None:
     """Draw a player card for the current player."""
-    global playercards_drawn
+    global playercards_drawn, player_draw_locked
+    if player_draw_locked:
+        print("⛔ Player draw is currently locked.")
+        return
     check_game_over()
     if playercards_drawn<remaining_player_cards:
-        drawing_phase()
+        drawing_phase(player_id)
         playercards_drawn += 1
         print("Drawing playercard!")
+    if playercards_drawn == remaining_player_cards:
+        print("End of drawing phase!")
+        player_draw_locked = True
 
-infectioncards_drawn = 0
-
-def draw_infection_card() -> None:
+def draw_infection_card(player_id) -> None:
     """Draw an infection card for the current player."""
     global infectioncards_drawn
     if infectioncards_drawn < remaining_infection_cards:
-        infection_phase()
+        infection_phase(player_id)
         infectioncards_drawn += 1
         print("Drawing infectioncard!")
-    else:
+    if infectioncards_drawn == remaining_infection_cards:
         print("End of turn!")
-        transition_to_next_phase()
+        transition_to_next_phase(player_id)
 
 # Call this function before transitioning to a new phase
-def transition_to_next_phase():
-    reset_card_draws()  # Reset the draws for the new phase
-    # Additional logic for transitioning phases can go here
+def transition_to_next_phase(player_id):
+    from pandemic import turn_handler
+    reset_card_draws()
+
+    # Just go to the next player with a short pause
+    turn_handler.next_turn()
 
 def handle_epidemic(player_id):
     """
@@ -393,5 +398,34 @@ def handle_epidemic(player_id):
 def trigger_outbreak(city_name, color_index):
     colors = ["yellow", "red", "blue", "black"]
     color = colors[color_index]
-    print(f"💥 Outbreak of {color} in {city_name}!")
-    # TODO: Handle outbreak spread to connected cities, track outbreak count, etc.
+    protected_cities = set()  # Cities that already had an outbreak this round
+    outbreak_queue = [city_name]  # Cities waiting to trigger outbreaks
+
+    while outbreak_queue:
+        city = outbreak_queue.pop(0)
+
+        if city in protected_cities:
+            continue  # Don't outbreak the same city twice in this chain
+
+        print(f"💥 Outbreak of {color} in {city}!")
+        data_unloader.outbreak_marker += 1
+        check_game_over()
+
+        protected_cities.add(city)
+
+        for neighbor in data_unloader.cities[city]["relations"]:
+            current_level = data_unloader.cities[neighbor]["infection_levels"][color_index]
+            cubes_to_add = 1
+
+            if current_level + cubes_to_add > 3:
+                # Outbreak should happen
+                cubes_added = 3 - current_level  # Only add up to 3
+                data_unloader.cities[neighbor]["infection_levels"][color_index] = 3
+                data_unloader.infection_cubes[color_index] -= cubes_added
+                check_game_over()
+                outbreak_queue.append(neighbor)
+            else:
+                # No outbreak, normal infection
+                data_unloader.cities[neighbor]["infection_levels"][color_index] = current_level + cubes_to_add
+                data_unloader.infection_cubes[color_index] -= cubes_to_add
+                check_game_over()
