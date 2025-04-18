@@ -258,6 +258,68 @@ def build_research_center(player_id) -> None:
         discard(player_id, 1, "build_research_center")
 
 def treat_disease() -> None:
+    if not world_map_drawer.can_perform_action():
+        return
+
+    import tkinter as tk
+    from tkinter import messagebox
+
+    player_id = world_map_drawer.current_playerturn
+    current_city = data_unloader.players_locations[player_id]
+    infection_levels = data_unloader.cities[current_city]["infection_levels"]
+    role = data_unloader.in_game_roles[player_id]
+
+    # Find which diseases are present
+    present_diseases = [(i, level) for i, level in enumerate(infection_levels) if level > 0]
+
+    if not present_diseases:
+        world_map_drawer.update_game_text(f"No disease to treat in {current_city}.")
+        return
+
+    def perform_treatment(disease_index: int):
+        cubes = infection_levels[disease_index]
+        disease_color = ["yellow", "red", "blue", "black"][disease_index]
+        is_cured = data_unloader.infection_status[disease_index] >= 1
+
+        if role == "Medic" and is_cured:
+            # Remove all cubes of that disease
+            data_unloader.infection_cubes[disease_index] += cubes
+            data_unloader.cities[current_city]["infection_levels"][disease_index] = 0
+            message = f"Player {player_id + 1} (Medic) treated all {disease_color} cubes in {current_city}."
+        else:
+            # Remove one cube
+            data_unloader.infection_cubes[disease_index] += 1
+            data_unloader.cities[current_city]["infection_levels"][disease_index] -= 1
+            message = f"Player {player_id + 1} treated 1 {disease_color} cube in {current_city}."
+
+        world_map_drawer.update_game_text(message)
+        world_map_drawer.update_text(player_id)
+        popup.destroy()
+
+    if len(present_diseases) == 1:
+        # Only one disease present: treat automatically
+        perform_treatment(present_diseases[0][0])
+    else:
+        # Multiple diseases present: show popup to choose
+        popup = tk.Toplevel(world_map_drawer.root)
+        popup.title("Choose Disease to Treat")
+        popup.geometry("300x200")
+
+        tk.Label(popup, text=f"{current_city} has multiple diseases. Choose one to treat:").pack(pady=10)
+
+        for index, count in present_diseases:
+            color = ["yellow", "red", "blue", "black"][index]
+            btn = tk.Button(
+                popup,
+                text=f"{color.capitalize()} ({count} cubes)",
+                command=lambda i=index: perform_treatment(i)
+            )
+            btn.pack(pady=5)
+
+        popup.grab_set()
+        popup.wait_window()
+
+def treat_disease() -> None:
     if world_map_drawer.can_perform_action():
         """Perform the Treat Disease action."""
         print("Treating disease!")
