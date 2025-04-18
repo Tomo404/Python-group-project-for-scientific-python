@@ -321,10 +321,69 @@ def treat_disease() -> None:
         popup.grab_set()
         popup.wait_window()
 
-def share_knowledge(player_id) -> None:
-    if world_map_drawer.can_perform_action():
-        """Perform the Share Knowledge action."""
-        print("Sharing knowledge!")
+def share_knowledge() -> None:
+    if not world_map_drawer.can_perform_action():
+        return
+
+    import tkinter as tk
+    from tkinter import messagebox
+
+    player_id = world_map_drawer.current_playerturn
+    current_city = data_unloader.players_locations[player_id]
+    role = data_unloader.in_game_roles[player_id]
+
+    # Find other players in the same city
+    others_in_city = [
+        pid for pid, city in data_unloader.players_locations.items()
+        if city == current_city and pid != player_id
+    ]
+
+    if not others_in_city:
+        world_map_drawer.update_game_text("No other player in the city to share knowledge with.")
+        return
+
+    # Find which player has the current city card
+    city_card = None
+    giver_id = None
+    receiver_id = None
+
+    for pid in [player_id] + others_in_city:
+        for card in data_unloader.players_hands[pid]:
+            if card.get("name") == current_city:
+                city_card = card
+                giver_id = pid
+                receiver_id = player_id if pid != player_id else others_in_city[0]
+                break
+        if city_card:
+            break
+
+    if not city_card:
+        world_map_drawer.update_game_text("No one has the city card to share.")
+        return
+
+    # Ask confirmation via popup
+    popup = tk.Toplevel(world_map_drawer.root)
+    popup.title("Share Knowledge")
+    popup.geometry("350x180")
+
+    g_role = data_unloader.in_game_roles[giver_id]
+    r_role = data_unloader.in_game_roles[receiver_id]
+
+    msg = f"{g_role} (P{giver_id+1}) gives '{current_city}' card to {r_role} (P{receiver_id+1})?"
+
+    tk.Label(popup, text=msg, font=("Arial", 10)).pack(pady=10)
+
+    def confirm():
+        data_unloader.players_hands[giver_id].remove(city_card)
+        data_unloader.players_hands[receiver_id].append(city_card)
+        world_map_drawer.update_text(receiver_id)
+        world_map_drawer.update_text(giver_id)
+        world_map_drawer.update_game_text(f"{g_role} gave '{current_city}' card to {r_role}.")
+        popup.destroy()
+
+    tk.Button(popup, text="Confirm", command=confirm).pack(pady=10)
+    popup.grab_set()
+
 
 def discover_cure(player_id) -> None:
     if world_map_drawer.can_perform_action():
