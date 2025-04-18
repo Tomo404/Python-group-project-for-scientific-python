@@ -449,11 +449,46 @@ def discover_cure() -> None:
 
     popup.grab_set()
 
+def play_event_card() -> None:
+    if not world_map_drawer.can_perform_action():
+        return
 
-def play_event_card(player_id) -> None:
-    if world_map_drawer.can_perform_action():
-        """Perform the Play Event Card action."""
-        print("Playing an event card!")
+    import tkinter as tk
+    from tkinter import messagebox
+
+    player_id = world_map_drawer.current_playerturn
+    hand = data_unloader.players_hands[player_id]
+
+    # Find playable event cards in hand
+    event_cards = [card for card in hand if card.get("cardtype") == "event_card" or "effect" in card]
+
+    if not event_cards:
+        world_map_drawer.update_game_text("No event cards to play.")
+        return
+
+    # Popup for selecting an event card
+    popup = tk.Toplevel(world_map_drawer.root)
+    popup.title("Play Event Card")
+    popup.geometry("400x300")
+
+    tk.Label(popup, text="Select an event card to play:").pack(pady=10)
+
+    def play(card):
+        # Remove from hand and add to discard pile
+        data_unloader.players_hands[player_id].remove(card)
+        data_unloader.playercard_discard.append(card)
+
+        # Placeholder: apply the effect (custom logic to be added per card)
+        effect = card.get("effect", "Effect will be implemented later.")
+        world_map_drawer.update_game_text(f"Player {player_id + 1} played event card: {card['name']}.\nEffect: {effect}")
+        popup.destroy()
+
+    for card in event_cards:
+        btn_text = f"{card['name']}: {card.get('effect', '')}"
+        tk.Button(popup, text=btn_text, wraplength=350, command=lambda c=card: play(c)).pack(pady=5)
+
+    popup.grab_set()
+
 
 def skip_turn(player_id) -> None:
     """Skip the current player's turn."""
