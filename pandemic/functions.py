@@ -225,6 +225,7 @@ def drive_ferry(player_id) -> None:
         def handle_selection(destination):
             print(f"Player {player_id} moving from {current_city} to {destination}")
             data_unloader.players_locations[player_id] = destination
+            world_map_drawer.update_player_marker(player_id, destination)
             messagebox.showinfo("Drive/Ferry", f"You moved from {current_city} to {destination}.")
             popup.destroy()
 
