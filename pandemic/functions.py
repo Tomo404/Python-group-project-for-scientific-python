@@ -385,10 +385,70 @@ def share_knowledge() -> None:
     popup.grab_set()
 
 
-def discover_cure(player_id) -> None:
-    if world_map_drawer.can_perform_action():
-        """Perform the Discover Cure action."""
-        print("Discovering cure!")
+def discover_cure() -> None:
+    if not world_map_drawer.can_perform_action():
+        return
+
+    import tkinter as tk
+    from tkinter import messagebox
+
+    player_id = world_map_drawer.current_playerturn
+    current_city = data_unloader.players_locations[player_id]
+    role = data_unloader.in_game_roles[player_id]
+
+    if not data_unloader.cities[current_city]["research_center"]:
+        world_map_drawer.update_game_text("You must be in a city with a research center to discover a cure.")
+        return
+
+    # Get the player's hand
+    player_hand = data_unloader.players_hands[player_id]
+
+    # Count how many cards of each color the player has
+    color_counts = {"yellow": [], "red": [], "blue": [], "black": []}
+    for card in player_hand:
+        color = card.get("color")
+        if color in color_counts:
+            color_counts[color].append(card)
+
+    # Determine the required amount of cards (Scientist needs 4)
+    required = 4 if role == "Scientist" else 5
+
+    # Check which colors are eligible
+    eligible_colors = [color for color, cards in color_counts.items() if len(cards) >= required]
+
+    if not eligible_colors:
+        world_map_drawer.update_game_text("You don't have enough cards of the same color to discover a cure.")
+        return
+
+    # Ask the player which color they want to cure
+    popup = tk.Toplevel(world_map_drawer.root)
+    popup.title("Discover Cure")
+    popup.geometry("350x180")
+
+    tk.Label(popup, text=f"Select which disease to cure ({required} cards required):").pack(pady=10)
+
+    def confirm(color):
+        # Remove selected cards from hand
+        for _ in range(required):
+            data_unloader.players_hands[player_id].remove(color_counts[color].pop())
+
+        # Update infection_status: 0 = active, 1 = cured, 2 = eradicated
+        index = ["yellow", "red", "blue", "black"].index(color)
+        if data_unloader.infection_status[index] == 0:
+            data_unloader.infection_status[index] = 1
+            world_map_drawer.update_disease_status(index)
+            world_map_drawer.update_game_text(f"{role} discovered a cure for the {color} disease!")
+        else:
+            world_map_drawer.update_game_text(f"{color.capitalize()} disease is already cured or eradicated.")
+
+        world_map_drawer.update_text(player_id)
+        popup.destroy()
+
+    for color in eligible_colors:
+        tk.Button(popup, text=color.capitalize(), command=lambda c=color: confirm(c)).pack(pady=5)
+
+    popup.grab_set()
+
 
 def play_event_card(player_id) -> None:
     if world_map_drawer.can_perform_action():
