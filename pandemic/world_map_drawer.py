@@ -267,7 +267,7 @@ def handle_click(action):
     """Handles button clicks by executing the corresponding action."""
     from pandemic import functions
     if action in functions.__dict__:
-        functions.__dict__[action](player_id)  # Calls the function dynamically
+        functions.__dict__[action](current_playerturn)
     elif action in globals():
         globals()[action]()
     else:
@@ -406,7 +406,7 @@ def update_player_portrait(canvas, current_player, iter):
             return
         # Get the player's role
         role = current_player.role if hasattr(current_player, "role") else current_player  # Adjust this based on your data structure
-        current_playerturn = current_player
+        current_playerturn = iter - 1  # Store actual player ID (0, 1, 2...)
         # Remove the previous portrait if it exists
         if current_portrait:
             canvas.delete(current_portrait)

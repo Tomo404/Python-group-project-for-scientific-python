@@ -41,14 +41,6 @@ if not BUILDING_DOCS:
                     messagebox.showerror("Invalid Selection", "You must select cards of the same color to discover a cure.")
                     return
 
-            elif purpose == "direct_flight":
-                # You must discard the card of the city you are flying to
-                destination_card = selected_cards[0]
-                current_city = data_unloader.players_locations[player_id]
-                if destination_card["name"] not in data_unloader.cities or destination_card["name"] == current_city:
-                    messagebox.showerror("Invalid Selection", f"You must discard a destination city card.")
-                    return
-
             elif purpose == "charter_flight":
                 # You must discard the card of the city you are currently in
                 destination_card = selected_cards[0]
@@ -238,10 +230,50 @@ def drive_ferry(player_id) -> None:
             ).pack(pady=3)
 
 def direct_flight(player_id) -> None:
-    if world_map_drawer.can_perform_action():
-        """Perform the Direct Flight action."""
-        print("Direct Flight action triggered!")
-        discard(player_id, 1, "direct_flight")
+    print(f"✈️ Direct Flight triggered by player {player_id}")
+
+    if not world_map_drawer.can_perform_action():
+        print("❌ Not enough actions")
+        return
+
+    hand = data_unloader.players_hands[player_id]
+    current_city = data_unloader.players_locations[player_id]
+
+    print("🧤 Hand:", hand)
+    print("🏙️ Current city:", current_city)
+
+    # Accept any card that has coordinates and color, and is not the current city
+    city_cards = [
+        card for card in hand
+        if "coordinates" in card and "color" in card and card["name"] != current_city
+    ]
+
+    print("🛫 Valid city cards:", city_cards)
+
+    if not city_cards:
+        world_map_drawer.update_game_text("No valid city cards for direct flight.")
+        return
+
+    # Show popup
+    popup = tk.Toplevel(world_map_drawer.root)
+    popup.title("Direct Flight")
+    popup.geometry("350x300")
+    tk.Label(popup, text="Choose a city card to fly to:").pack(pady=10)
+
+    def fly_to_city(card):
+        destination = card["name"]
+        data_unloader.players_hands[player_id].remove(card)
+        data_unloader.playercard_discard.append(card)
+        data_unloader.players_locations[player_id] = destination
+        world_map_drawer.update_player_marker(player_id, destination)
+        world_map_drawer.update_text(player_id)
+        world_map_drawer.update_game_text(f"Player {player_id + 1} flew to {destination} using Direct Flight.")
+        popup.destroy()
+
+    for card in city_cards:
+        tk.Button(popup, text=card["name"], command=lambda c=card: fly_to_city(c)).pack(pady=5)
+
+    popup.grab_set()
 
 def charter_flight(player_id) -> None:
     if world_map_drawer.can_perform_action():
