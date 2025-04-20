@@ -638,14 +638,40 @@ def drawing_phase(player_id) -> None:
     #time.sleep(1.5)  # Small pause for readability
 
 def infection_phase(player_id) -> None:
-    """
-    Execute the infection phase for the given player.
+    """Checks if there is enough infection cards"""
+    import random
 
-    Args:
-        player (Any): The current player object.
-    """
-    print("Player X's infection phase begins.")
-    # TODO: Skip if prevention card played
+    infection_discard = data_unloader.infection_discard
+    infections = data_unloader.infections
+    infection_cubes = data_unloader.infection_cubes
+    cities = data_unloader.cities
+
+    if len(infections) == 0:
+        random.shuffle(infection_discard)
+        infections = infection_discard[:]
+        infection_discard.clear()
+        print(f"Infection deck reshuffled")
+    else:
+        infection_card = infections.pop(0)  # Remove the first card from the deck
+        infection_discard.append(infection_card)  # Move to discard pile
+
+        city_name = infection_card["name"]
+        city_color = infection_card["color"]
+        color_index = ["yellow", "red", "blue", "black"].index(city_color)  # Find index for infection_cubes list
+
+        # Determine number of cubes based on draw order
+        cubes_to_add = 1
+        infection_cubes[color_index] -= cubes_to_add  # Reduce available cubes
+
+        # Update infection levels in the city data
+        if city_name in cities:
+            current_infection = cities[city_name]["infection_levels"][color_index]
+            new_infection = min(current_infection + cubes_to_add, 3)  # Max infection is 3
+            cities[city_name]["infection_levels"][color_index] = new_infection
+
+    world_map_drawer.update_text(player_id)
+    print(f"1 cube added to {city_name}")
+
 
 def draw_player_card(player_id) -> None:
     """Draw a player card for the current player."""
