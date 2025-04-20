@@ -136,7 +136,10 @@ if not BUILDING_DOCS:
                 destination_card = selected_cards[0]
                 current_city = data_unloader.players_locations[player_id]
 
-                if destination_card["name"] != current_city:
+                if data_unloader.in_game_roles[player_id] == "Operations Expert" and data_unloader.cities.get(data_unloader.players_locations[player_id], {}).get("research_center", False):
+                    print(f"OE can charter without matching card")
+
+                elif destination_card["name"] != current_city:
                     messagebox.showerror("Invalid Selection",
                                          f"You must discard the current city card: {current_city}.")
                     return
