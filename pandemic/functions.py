@@ -79,7 +79,7 @@ if not BUILDING_DOCS:
                     return
                 data_unloader.cities[current_city]["player_amount"] -= 1
                 data_unloader.cities[destination_card["name"]]["player_amount"] += 1
-                world_map_drawer.update_game_text(f"Player {player_id+1} moved to {destination_card["name"]}!")
+                world_map_drawer.update_game_text(f"Player {player_id+1} moved to {destination_card['name']}!")
                 world_map_drawer.update_player_marker(player_id, destination_card["name"])
                 world_map_drawer.update_text(player_id)
 
