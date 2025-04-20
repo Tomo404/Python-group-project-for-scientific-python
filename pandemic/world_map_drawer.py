@@ -215,26 +215,33 @@ player_markers = {}
 # Function to update player markers when they move
 def update_player_marker(player_id, new_city):
     if not BUILDING_DOCS:
-        """Moves a player's marker on the map."""
-        global player_markers  # Track player markers
+        global player_markers
 
-        # Get new coordinates
-        city_x = data_unloader.cities[new_city]["x"] * scale_factor + x_offset
-        city_y = data_unloader.cities[new_city]["y"] * scale_factor + y_offset
+        # Update the location of the specific player
+        data_unloader.players_locations[player_id] = new_city
 
-        # Get the assigned role color
-        player_role = data_unloader.in_game_roles[player_id]
-        role_color = role_colors.get(player_role, "pink")  # Default to pink if role not found
+        # Clear all old markers
+        for marker_id in player_markers.values():
+            canvas.delete(marker_id)
 
-        # Remove the old marker if it exists
-        if player_id in player_markers:
-            canvas.delete(player_markers[player_id])
+        player_markers.clear()
 
-        # Draw the new marker at the updated location
-        new_marker = canvas.create_oval(city_x - int(7.5 * scale_factor), city_y - int(7.5 * scale_factor), city_x + int(7.5 * scale_factor), city_y + int(7.5 * scale_factor), fill=role_color, outline="black")
+        # Redraw all players
+        for pid, city in data_unloader.players_locations.items():
+            city_x = data_unloader.cities[city]["x"] * scale_factor + x_offset
+            city_y = data_unloader.cities[city]["y"] * scale_factor + y_offset
 
-        # Store the new marker
-        player_markers[player_id] = new_marker
+            role = data_unloader.in_game_roles[pid]
+            role_color = role_colors.get(role, "pink")
+
+            marker = canvas.create_oval(
+                city_x - int(7.5 * scale_factor),
+                city_y - int(7.5 * scale_factor),
+                city_x + int(7.5 * scale_factor),
+                city_y + int(7.5 * scale_factor),
+                fill=role_color, outline="black"
+            )
+            player_markers[pid] = marker
 
 
 # Initial placement of players
@@ -263,11 +270,14 @@ if not BUILDING_DOCS:
     player_button = tk.Button(root, text="Show Player's Hand", command=player_hand_popup, bg="grey30", fg="black", width=int(36 * scale_factor), height=int(12 * scale_factor), font=("Arial", int(18 * scale_factor), "bold"))
     canvas.create_window((1199 * scale_factor) + x_offset, (1056 * scale_factor) + y_offset, window=player_button)
 
+current_player_id = 0
 def handle_click(action):
     """Handles button clicks by executing the corresponding action."""
     from pandemic import functions
+    global current_player_id
     if action in functions.__dict__:
-        functions.__dict__[action](current_playerturn)
+        player_id = current_player_id % len(data_unloader.in_game_roles)
+        functions.__dict__[action](player_id)  # Calls the function dynamically
     elif action in globals():
         globals()[action]()
     else:
@@ -406,7 +416,7 @@ def update_player_portrait(canvas, current_player, iter):
             return
         # Get the player's role
         role = current_player.role if hasattr(current_player, "role") else current_player  # Adjust this based on your data structure
-        current_playerturn = iter - 1  # Store actual player ID (0, 1, 2...)
+        current_playerturn = current_player
         # Remove the previous portrait if it exists
         if current_portrait:
             canvas.delete(current_portrait)
@@ -433,7 +443,7 @@ def update_player_portrait(canvas, current_player, iter):
 current_game_text = None
 
 def update_game_text(message):
-    if __name__ == "__main__" or "SPHINX_BUILD" in os.environ:
+    if not BUILDING_DOCS:
         """Updates the displayed text to indicate whose turn it is and what they did."""
         global current_game_text  # Allow modification of the global variable
 
@@ -448,7 +458,8 @@ def update_game_text(message):
             turn_text_x, turn_text_y,
             text=message,
             font=("Arial", int(15 * scale_factor), "bold"),
-            fill="black"
+            fill="black",
+            width=int(330 * scale_factor)
         )
 
 def rotate_player_hand(player_id):
@@ -530,4 +541,3 @@ def start_gui(player_id, player_role):
     rotate_player_hand(player_id)
     from pandemic import turn_handler  # ← avoid circular import early
     root.after(1000, turn_handler.next_turn)
-
