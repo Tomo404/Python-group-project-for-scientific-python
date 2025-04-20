@@ -290,10 +290,51 @@ def charter_flight(player_id) -> None:
         discard(player_id, 1, "charter_flight")
 
 def shuttle_flight(player_id) -> None:
-    if world_map_drawer.can_perform_action():
-        """Perform the Shuttle Flight action."""
-        print("Shuttle Flight action triggered!")
-        role = data_unloader.in_game_roles[player_id]
+    if not world_map_drawer.can_perform_action():
+        return
+
+    print("Shuttle Flight action triggered!")
+
+    current_city = data_unloader.players_locations[player_id]
+
+    # 1. Check if current city has a research center
+    if not data_unloader.cities[current_city]["research_center"]:
+        world_map_drawer.update_game_text(f"⚠️ {current_city} does not have a research center.")
+        return
+
+    # 2. Find other cities with research centers
+    destinations = [city for city, data in data_unloader.cities.items()
+                    if data["research_center"] and city != current_city]
+
+    if not destinations:
+        world_map_drawer.update_game_text("⚠️ No other research centers to shuttle to.")
+        return
+
+    # 3. Popup for destination selection
+    popup = tk.Toplevel(world_map_drawer.root)
+    popup.title("Shuttle Flight - Choose Destination")
+    popup.geometry("350x200")
+
+    tk.Label(popup, text="Select a destination city with a research center:").pack(pady=10)
+    selected_city = tk.StringVar(value=destinations[0])
+
+    dropdown = tk.OptionMenu(popup, selected_city, *destinations)
+    dropdown.pack(pady=10)
+
+    def confirm_flight():
+        destination = selected_city.get()
+        data_unloader.cities[current_city]["player_amount"] -= 1
+        data_unloader.cities[destination]["player_amount"] += 1
+        data_unloader.players_locations[player_id] = destination
+        world_map_drawer.update_game_text(f"🛩️ Player {player_id + 1} shuttled to {destination}.")
+        world_map_drawer.update_player_marker(player_id, destination)
+        world_map_drawer.update_text(player_id)
+        popup.destroy()
+
+    tk.Button(popup, text="Confirm", command=confirm_flight).pack(pady=10)
+    popup.grab_set()
+    popup.wait_window()
+
 
 def build_research_center(player_id) -> None:
     if world_map_drawer.can_perform_action():
