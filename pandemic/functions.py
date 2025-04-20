@@ -20,7 +20,8 @@ infectioncards_drawn = 0
 
 if not BUILDING_DOCS:
     def discard(player_id, amount_to_discard, purpose):
-        # Get the current player's hand
+        # Get the current player's hand and role
+        role = data_unloader.in_game_roles[player_id]
         player_hand = data_unloader.current_hand
         selected_cards = []
         def submit_selection():
@@ -35,18 +36,62 @@ if not BUILDING_DOCS:
 
             # ===================== Purpose-specific validation =====================
             if purpose == "discover_cure":
-                # For discovering a cure, all selected cards must be the same color
-                colors = [data_unloader.city_colors[card] for card in selected_cards]
-                if len(set(colors)) != 1:
-                    messagebox.showerror("Invalid Selection", "You must select cards of the same color to discover a cure.")
+                # Ensure all cards are city cards
+                if not all(card.get("cardtype") == "city_card" for card in selected_cards):
+                    messagebox.showerror("Invalid Selection",
+                                         "All selected cards must be city cards to discover a cure.")
                     return
+
+                # Ensure all cards are the same color
+                colors = [data_unloader.city_colors[card["name"]] for card in selected_cards]
+                if len(set(colors)) != 1:
+                    messagebox.showerror("Invalid Selection",
+                                         "You must select cards of the same color to discover a cure.")
+                    return
+
+                cure_color = colors[0]
+
+                # Discard the cards and update cure status
+                for card in selected_cards:
+                    data_unloader.players_hands[player_id] = [
+                        c for c in data_unloader.players_hands[player_id] if c["name"] != card["name"]
+                    ]
+                    data_unloader.playercard_discard.append({"name": card["name"], "cardtype": "city_card"})
+
+                color_to_index = {"yellow": 0, "red": 1, "blue": 2, "black": 3}
+                disease_index = color_to_index[cure_color]
+
+                if data_unloader.infection_status[disease_index] == 0:
+                    data_unloader.infection_status[disease_index] = 1
+                    world_map_drawer.update_game_text(
+                        f"💊 Player {player_id + 1} discovered a cure for the {cure_color} disease!")
+                    world_map_drawer.update_disease_status(disease_index)
+                    world_map_drawer.update_text(player_id)
+                else:
+                    world_map_drawer.update_game_text(f"💊 The {cure_color} disease has already been cured.")
+
+            elif purpose == "direct_flight":
+                # You must discard the card of the city you are flying to
+                destination_card = selected_cards[0]
+                current_city = data_unloader.players_locations[player_id]
+                if destination_card["name"] not in data_unloader.cities or destination_card["name"] == current_city:
+                    messagebox.showerror("Invalid Selection", f"You must discard a destination city card.")
+                    return
+                data_unloader.cities[current_city]["player_amount"] -= 1
+                data_unloader.cities[destination_card["name"]]["player_amount"] += 1
+                world_map_drawer.update_game_text(f"Player {player_id+1} moved to {destination_card["name"]}!")
+                world_map_drawer.update_player_marker(player_id, destination_card["name"])
+                world_map_drawer.update_text(player_id)
+
 
             elif purpose == "charter_flight":
                 # You must discard the card of the city you are currently in
                 destination_card = selected_cards[0]
                 current_city = data_unloader.players_locations[player_id]
+
                 if destination_card["name"] != current_city:
-                    messagebox.showerror("Invalid Selection", f"You must discard the current city card: {current_city}.")
+                    messagebox.showerror("Invalid Selection",
+                                         f"You must discard the current city card: {current_city}.")
                     return
 
                 # Show a popup to select the destination city
@@ -54,7 +99,6 @@ if not BUILDING_DOCS:
                     dest_popup = tk.Toplevel()
                     dest_popup.title("Select Destination City")
                     dest_popup.geometry("400x300")
-
                     tk.Label(dest_popup, text="Choose a destination city:").pack(pady=10)
 
                     city_var = tk.StringVar(value=list(data_unloader.cities.keys())[0])  # default to the first city
@@ -63,13 +107,12 @@ if not BUILDING_DOCS:
 
                     def confirm_destination():
                         destination = city_var.get()
-                        if destination == current_city:
-                            messagebox.showerror("Invalid Selection",
-                                                 f"You must choose another city that is not {current_city}.")
-                        else:
-                            messagebox.showinfo("Charter Flight", f"You will fly to {destination}.")
-                            # Optionally move the player here, or return value for game logic
-                            dest_popup.destroy()
+                        data_unloader.cities[current_city]["player_amount"] -= 1
+                        data_unloader.cities[destination_card["name"]]["player_amount"] += 1
+                        world_map_drawer.update_game_text(f"Player {player_id+1} moved to {destination}!")
+                        world_map_drawer.update_player_marker(player_id, destination)
+                        world_map_drawer.update_text(player_id)
+                        dest_popup.destroy()
 
                     tk.Button(dest_popup, text="Confirm", command=confirm_destination).pack(pady=10)
                     dest_popup.grab_set()
@@ -79,7 +122,6 @@ if not BUILDING_DOCS:
 
             elif purpose == "build_research_center":
                 current_city = data_unloader.players_locations[player_id]
-
                 selected_card = selected_cards[0]
 
                 if selected_card["name"] not in data_unloader.cities:
@@ -118,7 +160,7 @@ if not BUILDING_DOCS:
                             chosen_city = removable_city.get()
                             data_unloader.cities[chosen_city]["research_center"] = 0
                             data_unloader.cities[current_city]["research_center"] = 1
-                            messagebox.showinfo("Moved", f"Moved research center from {chosen_city} to {current_city}.")
+                            world_map_drawer.update_game_text(f"Moved research center from {chosen_city} to {current_city}.")
                             select_popup.destroy()
 
                         tk.Button(select_popup, text="Confirm", command=confirm_removal).pack(pady=10)
@@ -129,7 +171,10 @@ if not BUILDING_DOCS:
                 else:
                     # Add research center normally
                     data_unloader.cities[current_city]["research_center"] = 1
-                    messagebox.showinfo("Built", f"Research center built in {current_city}.")
+                    world_map_drawer.update_game_text(f"Player {player_id+1} built research center in {current_city}!")
+
+                world_map_drawer.update_research_centers()
+                world_map_drawer.update_text(player_id)
 
             elif purpose == "card_overflow":
                 # No validation needed; player is just discarding any cards to reduce hand to 7
@@ -204,6 +249,7 @@ def drive_ferry(player_id) -> None:
     if world_map_drawer.can_perform_action():
         """Perform the Drive/Ferry action."""
         print("Drive/Ferry action triggered!")
+        role = data_unloader.in_game_roles[player_id]
         current_city = data_unloader.players_locations[player_id]
         neighbors = data_unloader.cities[current_city]["relations"]
 
@@ -215,10 +261,12 @@ def drive_ferry(player_id) -> None:
         tk.Label(popup, text="Select a destination:", font=("Arial", 10)).pack()
 
         def handle_selection(destination):
-            print(f"Player {player_id} moving from {current_city} to {destination}")
             data_unloader.players_locations[player_id] = destination
+            data_unloader.cities[current_city]["player_amount"] -= 1
+            data_unloader.cities[destination]["player_amount"] += 1
+            world_map_drawer.update_game_text(f"Player {player_id+1} moved to {destination}!")
             world_map_drawer.update_player_marker(player_id, destination)
-            messagebox.showinfo("Drive/Ferry", f"You moved from {current_city} to {destination}.")
+            world_map_drawer.update_text(player_id)
             popup.destroy()
 
         for city in neighbors:
@@ -230,50 +278,10 @@ def drive_ferry(player_id) -> None:
             ).pack(pady=3)
 
 def direct_flight(player_id) -> None:
-    print(f"✈️ Direct Flight triggered by player {player_id}")
-
-    if not world_map_drawer.can_perform_action():
-        print("❌ Not enough actions")
-        return
-
-    hand = data_unloader.players_hands[player_id]
-    current_city = data_unloader.players_locations[player_id]
-
-    print("🧤 Hand:", hand)
-    print("🏙️ Current city:", current_city)
-
-    # Accept any card that has coordinates and color, and is not the current city
-    city_cards = [
-        card for card in hand
-        if "coordinates" in card and "color" in card and card["name"] != current_city
-    ]
-
-    print("🛫 Valid city cards:", city_cards)
-
-    if not city_cards:
-        world_map_drawer.update_game_text("No valid city cards for direct flight.")
-        return
-
-    # Show popup
-    popup = tk.Toplevel(world_map_drawer.root)
-    popup.title("Direct Flight")
-    popup.geometry("350x300")
-    tk.Label(popup, text="Choose a city card to fly to:").pack(pady=10)
-
-    def fly_to_city(card):
-        destination = card["name"]
-        data_unloader.players_hands[player_id].remove(card)
-        data_unloader.playercard_discard.append(card)
-        data_unloader.players_locations[player_id] = destination
-        world_map_drawer.update_player_marker(player_id, destination)
-        world_map_drawer.update_text(player_id)
-        world_map_drawer.update_game_text(f"Player {player_id + 1} flew to {destination} using Direct Flight.")
-        popup.destroy()
-
-    for card in city_cards:
-        tk.Button(popup, text=card["name"], command=lambda c=card: fly_to_city(c)).pack(pady=5)
-
-    popup.grab_set()
+    if world_map_drawer.can_perform_action():
+        """Perform the Direct Flight action."""
+        print("Direct Flight action triggered!")
+        discard(player_id, 1, "direct_flight")
 
 def charter_flight(player_id) -> None:
     if world_map_drawer.can_perform_action():
@@ -285,6 +293,7 @@ def shuttle_flight(player_id) -> None:
     if world_map_drawer.can_perform_action():
         """Perform the Shuttle Flight action."""
         print("Shuttle Flight action triggered!")
+        role = data_unloader.in_game_roles[player_id]
 
 def build_research_center(player_id) -> None:
     if world_map_drawer.can_perform_action():
@@ -292,235 +301,275 @@ def build_research_center(player_id) -> None:
         print("Building a Research Center!")
         discard(player_id, 1, "build_research_center")
 
-def treat_disease(player_id: int) -> None:
-    if not world_map_drawer.can_perform_action():
-        return
+def treat_disease(player_id) -> None:
+    if world_map_drawer.can_perform_action():
+        """Perform the Treat Disease action."""
+        print("Treating disease!")
+        current_city = data_unloader.players_locations[player_id]
+        infection_levels = data_unloader.cities[current_city]["infection_levels"]
+        role = data_unloader.in_game_roles[player_id]
 
-    import tkinter as tk
-    from tkinter import messagebox
+        # Find which diseases are present
+        present_diseases = [(i, level) for i, level in enumerate(infection_levels) if level > 0]
 
-    current_city = data_unloader.players_locations[player_id]
-    infection_levels = data_unloader.cities[current_city]["infection_levels"]
+        if not present_diseases:
+            world_map_drawer.update_game_text(f"No disease to treat in {current_city}.")
+            return
 
-    # Find which diseases are present
-    present_diseases = [(i, level) for i, level in enumerate(infection_levels) if level > 0]
+        def perform_treatment(disease_index: int):
+            cubes = infection_levels[disease_index]
+            disease_color = ["yellow", "red", "blue", "black"][disease_index]
+            is_cured = data_unloader.infection_status[disease_index] >= 1
 
-    if not present_diseases:
-        world_map_drawer.update_game_text(f"No disease to treat in {current_city}.")
-        return
+            if role == "Medic" or is_cured:
+                # Remove all cubes of that disease
+                data_unloader.infection_cubes[disease_index] += cubes
+                data_unloader.cities[current_city]["infection_levels"][disease_index] = 0
+                message = f"Player {player_id + 1} (Medic) treated all {disease_color} cubes in {current_city}."
+            else:
+                # Remove one cube
+                data_unloader.infection_cubes[disease_index] += 1
+                data_unloader.cities[current_city]["infection_levels"][disease_index] -= 1
+                message = f"Player {player_id + 1} treated 1 {disease_color} cube in {current_city}."
 
-    # Helper function to perform treatment
-    def perform_treatment(disease_index: int, popup=None):
-        disease_color = ["yellow", "red", "blue", "black"][disease_index]
+            # If we remove all disease cubes of a cured infection, the infection_status changes to eradicated (2)
+            if is_cured and data_unloader.infection_cubes[disease_index] == 24:
+                data_unloader.infection_status[disease_index] = 2
+                world_map_drawer.update_disease_status(disease_index)
 
-        # Remove one cube
-        data_unloader.infection_cubes[disease_index] += 1
-        data_unloader.cities[current_city]["infection_levels"][disease_index] -= 1
-        message = f"Player {player_id + 1} treated 1 {disease_color} cube in {current_city}."
+            world_map_drawer.update_game_text(message)
+            world_map_drawer.update_text(player_id)
 
-        world_map_drawer.update_game_text(message)
-        world_map_drawer.update_text(player_id)
+        if len(present_diseases) == 1:
+            # Only one disease present: treat automatically
+            perform_treatment(present_diseases[0][0])
+        else:
+            # Multiple diseases present: show popup to choose
+            popup = tk.Toplevel(world_map_drawer.root)
+            popup.title("Choose Disease to Treat")
+            popup.geometry("300x200")
 
-        if popup:
+            tk.Label(popup, text=f"{current_city} has multiple diseases. Choose one to treat:").pack(pady=10)
+
+            for index, count in present_diseases:
+                color = ["yellow", "red", "blue", "black"][index]
+                btn = tk.Button(
+                    popup,
+                    text=f"{color.capitalize()} ({count} cubes)",
+                    command=lambda i=index: perform_treatment(i)
+                )
+                btn.pack(pady=5)
+
+            popup.grab_set()
             popup.destroy()
 
-    # Only one disease present — treat it directly
-    if len(present_diseases) == 1:
-        perform_treatment(present_diseases[0][0])
-        return
+def share_knowledge(player_id) -> None:
+    if world_map_drawer.can_perform_action():
+        """Perform the Share Knowledge action (original and modified rule options)."""
+        print("Sharing knowledge!")
+        current_city = data_unloader.players_locations[player_id]
 
-    # Multiple diseases present — show popup
-    popup = tk.Toplevel(world_map_drawer.root)
-    popup.title("Choose Disease to Treat")
-    popup.geometry("300x200")
-    tk.Label(popup, text=f"{current_city} has multiple diseases. Choose one to treat:").pack(pady=10)
+        # Find other players in the same city
+        others_in_city = [
+            pid for pid, city in data_unloader.players_locations.items()
+            if city == current_city and pid != player_id
+        ]
 
-    for index, count in present_diseases:
-        color = ["yellow", "red", "blue", "black"][index]
-        btn = tk.Button(
-            popup,
-            text=f"{color.capitalize()} ({count} cubes)",
-            command=lambda i=index: perform_treatment(i, popup)
-        )
-        btn.pack(pady=5)
+        if not others_in_city:
+            world_map_drawer.update_game_text("No other player in the city to share knowledge with.")
+            return
 
-    popup.grab_set()
-    popup.wait_window()
+        # ===================== ORIGINAL RULE VERSION =====================
+        # Comment out this block if using the modified rule below
+        city_card = None
+        giver_id = None
+        receiver_id = None
 
-def share_knowledge() -> None:
-    if not world_map_drawer.can_perform_action():
-        return
-
-    import tkinter as tk
-    from tkinter import messagebox
-
-    player_id = world_map_drawer.current_playerturn
-    current_city = data_unloader.players_locations[player_id]
-    role = data_unloader.in_game_roles[player_id]
-
-    # Find other players in the same city
-    others_in_city = [
-        pid for pid, city in data_unloader.players_locations.items()
-        if city == current_city and pid != player_id
-    ]
-
-    if not others_in_city:
-        world_map_drawer.update_game_text("No other player in the city to share knowledge with.")
-        return
-
-    # Find which player has the current city card
-    city_card = None
-    giver_id = None
-    receiver_id = None
-
-    for pid in [player_id] + others_in_city:
-        for card in data_unloader.players_hands[pid]:
-            if card.get("name") == current_city:
+        for card in data_unloader.players_hands[player_id]:
+            if card["name"] == current_city:
                 city_card = card
-                giver_id = pid
-                receiver_id = player_id if pid != player_id else others_in_city[0]
+                giver_id = player_id
                 break
+
         if city_card:
-            break
+            # Current player has the city card — allow selection of recipient
+            popup = tk.Toplevel(world_map_drawer.root)
+            popup.title("Share Knowledge")
+            popup.geometry("350x250")
 
-    if not city_card:
-        world_map_drawer.update_game_text("No one has the city card to share.")
+            tk.Label(popup, text="Select a player to give the city card to:").pack(pady=10)
+            recipient_var = tk.IntVar(value=others_in_city[0])
+
+            for pid in others_in_city:
+                tk.Radiobutton(popup, text=f"Player {pid + 1}", variable=recipient_var, value=pid).pack(anchor="w")
+
+            def confirm_give():
+                receiver_id = recipient_var.get()
+                data_unloader.players_hands[giver_id].remove(city_card)
+                data_unloader.players_hands[receiver_id].append(city_card)
+                world_map_drawer.update_text(giver_id)
+                world_map_drawer.update_text(receiver_id)
+                world_map_drawer.update_game_text(
+                    f"Player {giver_id + 1} gave '{current_city}' card to Player {receiver_id + 1}."
+                )
+                popup.destroy()
+                if len(data_unloader.players_hands[receiver_id]) > 7:
+                    discard(receiver_id, len(data_unloader.players_hands[receiver_id]) - 7, "card_overflow")
+
+            tk.Button(popup, text="Confirm", command=confirm_give).pack(pady=10)
+            popup.grab_set()
+            return
+
+        # If another player has the city card — allow taking it
+        for pid in others_in_city:
+            for card in data_unloader.players_hands[pid]:
+                if card["name"] == current_city:
+                    city_card = card
+                    giver_id = pid
+                    receiver_id = player_id
+                    break
+            if city_card:
+                break
+
+        if not city_card:
+            world_map_drawer.update_game_text("No one has the city card to share.")
+            return
+
+        popup = tk.Toplevel(world_map_drawer.root)
+        popup.title("Share Knowledge")
+        popup.geometry("350x180")
+
+        msg = f"Player {giver_id + 1} gives '{current_city}' card to Player {receiver_id + 1}?"
+        tk.Label(popup, text=msg, font=("Arial", 10)).pack(pady=10)
+
+        def confirm_take():
+            data_unloader.players_hands[giver_id].remove(city_card)
+            data_unloader.players_hands[receiver_id].append(city_card)
+            world_map_drawer.update_text(giver_id)
+            world_map_drawer.update_text(receiver_id)
+            world_map_drawer.update_game_text(
+                f"Player {giver_id + 1} gave '{current_city}' card to Player {receiver_id + 1}!"
+            )
+            popup.destroy()
+            if len(data_unloader.players_hands[receiver_id]) > 7:
+                discard(receiver_id, len(data_unloader.players_hands[receiver_id]) - 7, "card_overflow")
+
+        tk.Button(popup, text="Confirm", command=confirm_take).pack(pady=10)
+        popup.grab_set()
         return
 
-    # Ask confirmation via popup
-    popup = tk.Toplevel(world_map_drawer.root)
-    popup.title("Share Knowledge")
-    popup.geometry("350x180")
+        # ===================== MODIFIED RULE VERSION =====================
+        # Uncomment this block if using the modified rule instead
+        """popup = tk.Toplevel(world_map_drawer.root)
+        popup.title("Modified Share Knowledge")
+        popup.geometry("400x350")
 
-    g_role = data_unloader.in_game_roles[giver_id]
-    r_role = data_unloader.in_game_roles[receiver_id]
+        tk.Label(popup, text="Select a player to trade with:").pack(pady=5)
+        player_var = tk.IntVar(value=others_in_city[0])
+        for pid in others_in_city:
+            tk.Radiobutton(popup, text=f"Player {pid + 1}", variable=player_var, value=pid).pack(anchor="w")
 
-    msg = f"{g_role} (P{giver_id+1}) gives '{current_city}' card to {r_role} (P{receiver_id+1})?"
+        direction_var = tk.StringVar(value="give")
+        tk.Label(popup, text="Select transfer direction:").pack(pady=5)
+        tk.Radiobutton(popup, text="Give a card", variable=direction_var, value="give").pack(anchor="w")
+        tk.Radiobutton(popup, text="Receive a card", variable=direction_var, value="receive").pack(anchor="w")
 
-    tk.Label(popup, text=msg, font=("Arial", 10)).pack(pady=10)
+        def select_card():
+            target_pid = player_var.get()
+            direction = direction_var.get()
+            source_id = player_id if direction == "give" else target_pid
+            target_id = target_pid if direction == "give" else player_id
 
-    def confirm():
-        data_unloader.players_hands[giver_id].remove(city_card)
-        data_unloader.players_hands[receiver_id].append(city_card)
-        world_map_drawer.update_text(receiver_id)
-        world_map_drawer.update_text(giver_id)
-        world_map_drawer.update_game_text(f"{g_role} gave '{current_city}' card to {r_role}.")
-        popup.destroy()
+            source_hand = data_unloader.players_hands[source_id]
 
-    tk.Button(popup, text="Confirm", command=confirm).pack(pady=10)
-    popup.grab_set()
+            card_popup = tk.Toplevel(world_map_drawer.root)
+            card_popup.title("Select Card")
+            card_popup.geometry("400x400")
 
+            tk.Label(card_popup, text="Select a card to transfer:").pack(pady=5)
+            selected_card_name = tk.StringVar()
 
-def discover_cure() -> None:
-    if not world_map_drawer.can_perform_action():
-        return
+            for card in source_hand:
+                tk.Radiobutton(card_popup, text=card["name"], variable=selected_card_name, value=card["name"]).pack(anchor="w")
 
-    import tkinter as tk
-    from tkinter import messagebox
+            def confirm_transfer():
+                chosen_name = selected_card_name.get()
+                if not chosen_name:
+                    return
+                card = next(card for card in source_hand if card["name"] == chosen_name)
+                data_unloader.players_hands[source_id].remove(card)
+                data_unloader.players_hands[target_id].append(card)
 
-    player_id = world_map_drawer.current_playerturn
-    current_city = data_unloader.players_locations[player_id]
-    role = data_unloader.in_game_roles[player_id]
+                world_map_drawer.update_text(source_id)
+                world_map_drawer.update_text(target_id)
+                world_map_drawer.update_game_text(
+                    f"Shared card '{chosen_name}' from Player {source_id + 1} to Player {target_id + 1}"
+                )
+                card_popup.destroy()
+                popup.destroy()
 
-    if not data_unloader.cities[current_city]["research_center"]:
-        world_map_drawer.update_game_text("You must be in a city with a research center to discover a cure.")
-        return
+                if len(data_unloader.players_hands[target_id]) > 7:
+                    discard(target_id, len(data_unloader.players_hands[target_id]) - 7, "card_overflow")
 
-    # Get the player's hand
-    player_hand = data_unloader.players_hands[player_id]
+            tk.Button(card_popup, text="Confirm", command=confirm_transfer).pack(pady=10)
+            card_popup.grab_set()
 
-    # Count how many cards of each color the player has
-    color_counts = {"yellow": [], "red": [], "blue": [], "black": []}
-    for card in player_hand:
-        color = card.get("color")
-        if color in color_counts:
-            color_counts[color].append(card)
+        tk.Button(popup, text="Next", command=select_card).pack(pady=10)
+        popup.grab_set()"""
 
-    # Determine the required amount of cards (Scientist needs 4)
-    required = 4 if role == "Scientist" else 5
-
-    # Check which colors are eligible
-    eligible_colors = [color for color, cards in color_counts.items() if len(cards) >= required]
-
-    if not eligible_colors:
-        world_map_drawer.update_game_text("You don't have enough cards of the same color to discover a cure.")
-        return
-
-    # Ask the player which color they want to cure
-    popup = tk.Toplevel(world_map_drawer.root)
-    popup.title("Discover Cure")
-    popup.geometry("350x180")
-
-    tk.Label(popup, text=f"Select which disease to cure ({required} cards required):").pack(pady=10)
-
-    def confirm(color):
-        # Remove selected cards from hand
-        for _ in range(required):
-            data_unloader.players_hands[player_id].remove(color_counts[color].pop())
-
-        # Update infection_status: 0 = active, 1 = cured, 2 = eradicated
-        index = ["yellow", "red", "blue", "black"].index(color)
-        if data_unloader.infection_status[index] == 0:
-            data_unloader.infection_status[index] = 1
-            world_map_drawer.update_disease_status(index)
-            world_map_drawer.update_game_text(f"{role} discovered a cure for the {color} disease!")
+def discover_cure(player_id) -> None:
+    if world_map_drawer.can_perform_action():
+        """Perform the Discover Cure action."""
+        print("Discovering cure!")
+        role = data_unloader.in_game_roles[player_id]
+        if role == "Scientist":
+            discard(player_id, 4, "discover_cure")
         else:
-            world_map_drawer.update_game_text(f"{color.capitalize()} disease is already cured or eradicated.")
+            discard(player_id, 5, "discover_cure")
 
-        world_map_drawer.update_text(player_id)
-        popup.destroy()
+def play_event_card(player_id) -> None:
+    if world_map_drawer.can_perform_action():
+        """Perform the Play Event Card action."""
+        print("Playing an event card!")
+        hand = data_unloader.players_hands[player_id]
 
-    for color in eligible_colors:
-        tk.Button(popup, text=color.capitalize(), command=lambda c=color: confirm(c)).pack(pady=5)
+        # Find playable event cards in hand
+        event_cards = [card for card in hand if card.get("cardtype") == "event_card" or "effect" in card]
 
-    popup.grab_set()
+        if not event_cards:
+            world_map_drawer.update_game_text("No event cards to play.")
+            return
 
-def play_event_card() -> None:
-    if not world_map_drawer.can_perform_action():
-        return
+        # Popup for selecting an event card
+        popup = tk.Toplevel(world_map_drawer.root)
+        popup.title("Play Event Card")
+        popup.geometry("400x300")
 
-    import tkinter as tk
-    from tkinter import messagebox
+        tk.Label(popup, text="Select an event card to play:").pack(pady=10)
 
-    player_id = world_map_drawer.current_playerturn
-    hand = data_unloader.players_hands[player_id]
+        def play(card):
+            # Remove from hand and add to discard pile
+            hand.remove(card)
+            data_unloader.playercard_discard.append(card)
 
-    # Find playable event cards in hand
-    event_cards = [card for card in hand if card.get("cardtype") == "event_card" or "effect" in card]
+            # Placeholder: apply the effect (custom logic to be added per card)
+            name = card["name"] #EZT ITT CSINÁLD MEG BAZZE!
+            """if name == "valami":
+                data_unloader.actions += 2"""
+            world_map_drawer.update_game_text(f"Player {player_id + 1} played {name}")
+            popup.destroy()
 
-    if not event_cards:
-        world_map_drawer.update_game_text("No event cards to play.")
-        return
+        for card in event_cards:
+            btn_text = f"{card['name']}: {card.get('effect', '')}"
+            tk.Button(popup, text=btn_text, wraplength=350, command=lambda c=card: play(c)).pack(pady=5)
 
-    # Popup for selecting an event card
-    popup = tk.Toplevel(world_map_drawer.root)
-    popup.title("Play Event Card")
-    popup.geometry("400x300")
-
-    tk.Label(popup, text="Select an event card to play:").pack(pady=10)
-
-    def play(card):
-        # Remove from hand and add to discard pile
-        data_unloader.players_hands[player_id].remove(card)
-        data_unloader.playercard_discard.append(card)
-
-        # Placeholder: apply the effect (custom logic to be added per card)
-        effect = card.get("effect", "Effect will be implemented later.")
-        world_map_drawer.update_game_text(f"Player {player_id + 1} played event card: {card['name']}.\nEffect: {effect}")
-        popup.destroy()
-
-    for card in event_cards:
-        btn_text = f"{card['name']}: {card.get('effect', '')}"
-        tk.Button(popup, text=btn_text, wraplength=350, command=lambda c=card: play(c)).pack(pady=5)
-
-    popup.grab_set()
-
+        popup.grab_set()
 
 def skip_turn(player_id) -> None:
     """Skip the current player's turn."""
     if data_unloader.actions != 0:
         data_unloader.actions = 0
-    print("Turn skipped!")
+    print(f"{player_id}'s Turn skipped!")
 
 def drawing_phase(player_id) -> None:
     """
@@ -540,10 +589,12 @@ def drawing_phase(player_id) -> None:
         handle_epidemic(player_id)
     else:
         hand.append(card)
+        if len(data_unloader.players_hands[player_id]) > 7:
+            discard(player_id, len(data_unloader.players_hands[player_id]) - 7, "card_overflow")
 
     # Update text on the map to reflect new hand size
     world_map_drawer.update_text(player_id)
-    time.sleep(1.5)  # Small pause for readability
+    #time.sleep(1.5)  # Small pause for readability
 
 def infection_phase(player_id) -> None:
     """
