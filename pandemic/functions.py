@@ -18,6 +18,53 @@ player_draw_locked = False
 playercards_drawn = 0
 infectioncards_drawn = 0
 
+def research_center_action(player_id):
+    current_city = data_unloader.players_locations[player_id]
+
+    if data_unloader.cities[current_city]["research_center"] == 1:
+        messagebox.showinfo("Already Present", f"There is already a research center in {current_city}.")
+        return
+
+    # Count total research centers
+    total_research_centers = sum(city_data["research_center"] for city_data in data_unloader.cities.values())
+
+    if total_research_centers >= 6:
+        # Let player choose one to remove
+        other_cities = [name for name, data in data_unloader.cities.items()
+                        if data["research_center"] == 1 and name != current_city]
+
+        def choose_research_center_to_remove():
+            select_popup = tk.Toplevel()
+            select_popup.title("Remove a Research Center")
+            select_popup.geometry("400x300")
+
+            tk.Label(select_popup, text="Choose a city to remove its research center:").pack(pady=10)
+
+            removable_city = tk.StringVar(value=other_cities[0])
+            city_menu = tk.OptionMenu(select_popup, removable_city, *other_cities)
+            city_menu.pack(pady=10)
+
+            def confirm_removal():
+                chosen_city = removable_city.get()
+                data_unloader.cities[chosen_city]["research_center"] = 0
+                data_unloader.cities[current_city]["research_center"] = 1
+                world_map_drawer.update_game_text(f"Moved research center from {chosen_city} to {current_city}.")
+                select_popup.destroy()
+
+            tk.Button(select_popup, text="Confirm", command=confirm_removal).pack(pady=10)
+            select_popup.grab_set()
+            select_popup.wait_window()
+
+        choose_research_center_to_remove()
+    else:
+        # Add research center normally
+        data_unloader.cities[current_city]["research_center"] = 1
+        world_map_drawer.update_game_text(f"Player {player_id + 1} built research center in {current_city}!")
+
+    world_map_drawer.update_research_centers()
+    world_map_drawer.update_text(player_id)
+
+
 if not BUILDING_DOCS:
     def discard(player_id, amount_to_discard, purpose):
         # Get the current player's hand and role
@@ -133,48 +180,7 @@ if not BUILDING_DOCS:
                                          f"You can only build a research center in your current city: {current_city}.")
                     return
 
-                if data_unloader.cities[current_city]["research_center"] == 1:
-                    messagebox.showinfo("Already Present", f"There is already a research center in {current_city}.")
-                    return
-
-                # Count total research centers
-                total_research_centers = sum(city_data["research_center"] for city_data in data_unloader.cities.values())
-
-                if total_research_centers >= 6:
-                    # Let player choose one to remove
-                    other_cities = [name for name, data in data_unloader.cities.items()
-                                    if data["research_center"] == 1 and name != current_city]
-
-                    def choose_research_center_to_remove():
-                        select_popup = tk.Toplevel()
-                        select_popup.title("Remove a Research Center")
-                        select_popup.geometry("400x300")
-
-                        tk.Label(select_popup, text="Choose a city to remove its research center:").pack(pady=10)
-
-                        removable_city = tk.StringVar(value=other_cities[0])
-                        city_menu = tk.OptionMenu(select_popup, removable_city, *other_cities)
-                        city_menu.pack(pady=10)
-
-                        def confirm_removal():
-                            chosen_city = removable_city.get()
-                            data_unloader.cities[chosen_city]["research_center"] = 0
-                            data_unloader.cities[current_city]["research_center"] = 1
-                            world_map_drawer.update_game_text(f"Moved research center from {chosen_city} to {current_city}.")
-                            select_popup.destroy()
-
-                        tk.Button(select_popup, text="Confirm", command=confirm_removal).pack(pady=10)
-                        select_popup.grab_set()
-                        select_popup.wait_window()
-
-                    choose_research_center_to_remove()
-                else:
-                    # Add research center normally
-                    data_unloader.cities[current_city]["research_center"] = 1
-                    world_map_drawer.update_game_text(f"Player {player_id+1} built research center in {current_city}!")
-
-                world_map_drawer.update_research_centers()
-                world_map_drawer.update_text(player_id)
+                research_center_action(player_id)
 
             elif purpose == "card_overflow":
                 # No validation needed; player is just discarding any cards to reduce hand to 7
@@ -340,7 +346,12 @@ def build_research_center(player_id) -> None:
     if world_map_drawer.can_perform_action():
         """Perform the action of building a research center."""
         print("Building a Research Center!")
-        discard(player_id, 1, "build_research_center")
+
+        if data_unloader.in_game_roles[player_id] == "Operations Expert":
+            print(f"Operations expert is rc")
+            research_center_action(player_id)
+
+        else: discard(player_id, 1, "build_research_center")
 
 def treat_disease(player_id) -> None:
     if world_map_drawer.can_perform_action():
