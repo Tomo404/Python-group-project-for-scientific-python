@@ -9,12 +9,11 @@ if not BUILDING_DOCS:
     root = world_map_drawer.root
 players = data_unloader.in_game_roles
 current_player_index = world_map_drawer.player_id
-turn_timer = None
 game_start = True
 game_started = False  # Flag to ensure we only start the game once
 
 def next_turn():
-    global current_player_index, turn_timer
+    global current_player_index
 
     if functions.check_game_over():
         return
@@ -28,6 +27,9 @@ def next_turn():
     world_map_drawer.update_player_marker(player_id, current_city)
     current_player_index = (current_player_index + 1) % len(players)
     world_map_drawer.rotate_player_hand(player_id)
+    # turn_handler.py — inside next_turn()
+    world_map_drawer.current_player_id = player_id
+    world_map_drawer.current_playerturn = player_role  # or player_role if your other code expects role
 
 def start_game():
     global game_started
