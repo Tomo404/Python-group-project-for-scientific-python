@@ -13,57 +13,11 @@ BUILDING_DOCS = os.environ.get("READTHEDOCS") == "True" or "sphinx" in sys.modul
 # Define global variables to track remaining cards and actions
 remaining_player_cards = 2  # The number of player cards to draw (fixed)
 remaining_infection_cards = 2  # This depends on the infection rate (can be dynamic)
-game_over = False # A variable signalling game over
+game_over = False  # A variable signalling game over
 player_draw_locked = False
 playercards_drawn = 0
 infectioncards_drawn = 0
-
-def research_center_action(player_id):
-    current_city = data_unloader.players_locations[player_id]
-
-    if data_unloader.cities[current_city]["research_center"] == 1:
-        messagebox.showinfo("Already Present", f"There is already a research center in {current_city}.")
-        return
-
-    # Count total research centers
-    total_research_centers = sum(city_data["research_center"] for city_data in data_unloader.cities.values())
-
-    if total_research_centers >= 6:
-        # Let player choose one to remove
-        other_cities = [name for name, data in data_unloader.cities.items()
-                        if data["research_center"] == 1 and name != current_city]
-
-        def choose_research_center_to_remove():
-            select_popup = tk.Toplevel()
-            select_popup.title("Remove a Research Center")
-            select_popup.geometry("400x300")
-
-            tk.Label(select_popup, text="Choose a city to remove its research center:").pack(pady=10)
-
-            removable_city = tk.StringVar(value=other_cities[0])
-            city_menu = tk.OptionMenu(select_popup, removable_city, *other_cities)
-            city_menu.pack(pady=10)
-
-            def confirm_removal():
-                chosen_city = removable_city.get()
-                data_unloader.cities[chosen_city]["research_center"] = 0
-                data_unloader.cities[current_city]["research_center"] = 1
-                world_map_drawer.update_game_text(f"Moved research center from {chosen_city} to {current_city}.")
-                select_popup.destroy()
-
-            tk.Button(select_popup, text="Confirm", command=confirm_removal).pack(pady=10)
-            select_popup.grab_set()
-            select_popup.wait_window()
-
-        choose_research_center_to_remove()
-    else:
-        # Add research center normally
-        data_unloader.cities[current_city]["research_center"] = 1
-        world_map_drawer.update_game_text(f"Player {player_id + 1} built research center in {current_city}!")
-
-    world_map_drawer.update_research_centers()
-    world_map_drawer.update_text(player_id)
-
+operations_expert_switch = True
 
 if not BUILDING_DOCS:
     def discard(player_id, amount_to_discard, purpose):
@@ -71,6 +25,7 @@ if not BUILDING_DOCS:
         role = data_unloader.in_game_roles[player_id]
         player_hand = data_unloader.current_hand
         selected_cards = []
+
         def submit_selection():
             nonlocal selected_cards
             # Gather the cards selected by the player (checkboxes)
@@ -110,6 +65,7 @@ if not BUILDING_DOCS:
 
                 if data_unloader.infection_status[disease_index] == 0:
                     data_unloader.infection_status[disease_index] = 1
+                    data_unloader.actions -= 1
                     world_map_drawer.update_game_text(
                         f"💊 Player {player_id + 1} discovered a cure for the {cure_color} disease!")
                     world_map_drawer.update_disease_status(disease_index)
@@ -126,36 +82,20 @@ if not BUILDING_DOCS:
                     return
                 data_unloader.cities[current_city]["player_amount"] -= 1
                 data_unloader.cities[destination_card["name"]]["player_amount"] += 1
-                world_map_drawer.update_game_text(f"Player {player_id+1} moved to {destination_card['name']}!")
+                data_unloader.actions -= 1
+                world_map_drawer.update_game_text(f"Player {player_id + 1} moved to {destination_card['name']}!")
                 world_map_drawer.update_player_marker(player_id, destination_card["name"])
                 world_map_drawer.update_text(player_id)
 
-
             elif purpose == "charter_flight":
+                global operations_expert_switch
                 # You must discard the card of the city you are currently in
                 destination_card = selected_cards[0]
                 current_city = data_unloader.players_locations[player_id]
-
-                if data_unloader.in_game_roles[player_id] == "Operations Expert":
-
-                    if destination_card["name"] == current_city:
-                            print(f"Normal charter flight")
-
-                    elif data_unloader.cities.get(current_city, {}).get("research_center", False):
-
-                        if data_unloader.operations_expert_used[player_id]:
-                            messagebox.showwarning("Already Used", "You can only use this ability once per turn.")
-                            return
-                        else:
-                            data_unloader.operations_expert_used[player_id] = True
-                            print(f"✅ OE ability used for Player {player_id}")
-
-                    elif (destination_card["name"] != current_city):
-                        messagebox.showerror("Invalid Selection",f"You must discard the current city card: {current_city}.")
-                        return
-
-
-                elif destination_card["name"] != current_city:
+                if role == "Operations Expert" and not operations_expert_switch and data_unloader.cities[current_city]["research_center"] != 1:
+                    messagebox.showerror("Invalid city", f"{current_city} has no research center!")
+                    return
+                elif role != "Operations Expert" and destination_card["name"] != current_city:
                     messagebox.showerror("Invalid Selection",
                                          f"You must discard the current city card: {current_city}.")
                     return
@@ -172,13 +112,17 @@ if not BUILDING_DOCS:
                     city_menu.pack(pady=10)
 
                     def confirm_destination():
+                        global operations_expert_switch
                         destination = city_var.get()
                         data_unloader.cities[current_city]["player_amount"] -= 1
                         data_unloader.cities[destination_card["name"]]["player_amount"] += 1
-                        world_map_drawer.update_game_text(f"Player {player_id+1} moved to {destination}!")
+                        data_unloader.actions -= 1
+                        world_map_drawer.update_game_text(f"Player {player_id + 1} moved to {destination}!")
                         world_map_drawer.update_player_marker(player_id, destination)
                         world_map_drawer.update_text(player_id)
                         dest_popup.destroy()
+                        if role == "Operations Expert":
+                            operations_expert_switch = False
 
                     tk.Button(dest_popup, text="Confirm", command=confirm_destination).pack(pady=10)
                     dest_popup.grab_set()
@@ -199,7 +143,7 @@ if not BUILDING_DOCS:
                                          f"You can only build a research center in your current city: {current_city}.")
                     return
 
-                research_center_action(player_id)
+                oe_build_research_center(player_id)
 
             elif purpose == "card_overflow":
                 # No validation needed; player is just discarding any cards to reduce hand to 7
@@ -239,37 +183,41 @@ if not BUILDING_DOCS:
         popup.grab_set()  # Makes the popup modal — locks focus
         popup.wait_window()  # Waits until popup is destroyed before continuing
 
-def check_game_over(): #checks if one of the game over requirements is met: 3 losing and 1 winning situation
+
+def check_game_over():  # checks if one of the game over requirements is met: 3 losing and 1 winning situation
     global game_over
-    if len(data_unloader.player_deck) < 2: # We lose if the player deck runs out of cards
+    if len(data_unloader.player_deck) < 2:  # We lose if the player deck runs out of cards
         game_over = True
         world_map_drawer.update_game_text("Game Over! Ran out of player cards!")
         return True
-    elif data_unloader.outbreak_marker == 8: # We lose if 8 or more outbreaks occur
+    elif data_unloader.outbreak_marker == 8:  # We lose if 8 or more outbreaks occur
         game_over = True
         world_map_drawer.update_game_text("Game Over! Too many outbreaks occurred!")
         return True
-    elif any(cube < 0 for cube in data_unloader.infection_cubes): # We lose if we can't place infection cubes
+    elif any(cube < 0 for cube in data_unloader.infection_cubes):  # We lose if we can't place infection cubes
         game_over = True
         world_map_drawer.update_game_text("Game Over! Ran out of infection cubes!")
         return True
-    elif all(status > 0 for status in data_unloader.infection_status): # We win if all diseases are cured
+    elif all(status > 0 for status in data_unloader.infection_status):  # We win if all diseases are cured
         game_over = True
         world_map_drawer.update_game_text("You've successfully cured all diseases!")
         return True
     return False
 
+
 # Function to reset the card draws at the start of each phase
 def reset_card_draws():
-    global remaining_player_cards, remaining_infection_cards
+    global remaining_player_cards, remaining_infection_cards, operations_expert_switch
     global playercards_drawn, infectioncards_drawn, player_draw_locked  # ✅ add this
     remaining_player_cards = 2  # Reset player card draws (fixed)
-    remaining_infection_cards = data_unloader.infection_rate_marker_amount[data_unloader.infection_rate_marker]  # Set infection card draws based on infection rate
+    remaining_infection_cards = data_unloader.infection_rate_marker_amount[
+        data_unloader.infection_rate_marker]  # Set infection card draws based on infection rate
     data_unloader.actions = 4
     playercards_drawn = 0
     infectioncards_drawn = 0
     player_draw_locked = False
-    data_unloader.operations_expert_used = [False for _ in range(len(data_unloader.players_hands))]
+    operations_expert_switch = True
+
 
 def drive_ferry(player_id) -> None:
     if world_map_drawer.can_perform_action():
@@ -290,7 +238,8 @@ def drive_ferry(player_id) -> None:
             data_unloader.players_locations[player_id] = destination
             data_unloader.cities[current_city]["player_amount"] -= 1
             data_unloader.cities[destination]["player_amount"] += 1
-            world_map_drawer.update_game_text(f"Player {player_id+1} moved to {destination}!")
+            data_unloader.actions -= 1
+            world_map_drawer.update_game_text(f"Player {player_id + 1} moved to {destination}!")
             world_map_drawer.update_player_marker(player_id, destination)
             world_map_drawer.update_text(player_id)
             popup.destroy()
@@ -303,11 +252,13 @@ def drive_ferry(player_id) -> None:
                 command=lambda c=city: handle_selection(c)
             ).pack(pady=3)
 
+
 def direct_flight(player_id) -> None:
     if world_map_drawer.can_perform_action():
         """Perform the Direct Flight action."""
         print("Direct Flight action triggered!")
         discard(player_id, 1, "direct_flight")
+
 
 def charter_flight(player_id) -> None:
     if world_map_drawer.can_perform_action():
@@ -315,63 +266,115 @@ def charter_flight(player_id) -> None:
         print("Charter Flight action triggered!")
         discard(player_id, 1, "charter_flight")
 
+
 def shuttle_flight(player_id) -> None:
-    if not world_map_drawer.can_perform_action():
-        return
+    if world_map_drawer.can_perform_action():
+        """Perform the Shuttle Flight action."""
+        print("Shuttle Flight action triggered!")
+        current_city = data_unloader.players_locations[player_id]
 
-    print("Shuttle Flight action triggered!")
+        # 1. Check if current city has a research center
+        if not data_unloader.cities[current_city]["research_center"]:
+            world_map_drawer.update_game_text(f"⚠️ {current_city} does not have a research center.")
+            return
 
+        # 2. Find other cities with research centers
+        destinations = [city for city, data in data_unloader.cities.items()
+                        if data["research_center"] and city != current_city]
+
+        if not destinations:
+            world_map_drawer.update_game_text("⚠️ No other research centers to shuttle to.")
+            return
+
+        # 3. Popup for destination selection
+        popup = tk.Toplevel(world_map_drawer.root)
+        popup.title("Shuttle Flight - Choose Destination")
+        popup.geometry("350x200")
+
+        tk.Label(popup, text="Select a destination city with a research center:").pack(pady=10)
+        selected_city = tk.StringVar(value=destinations[0])
+
+        dropdown = tk.OptionMenu(popup, selected_city, *destinations)
+        dropdown.pack(pady=10)
+
+        def confirm_flight():
+            destination = selected_city.get()
+            data_unloader.cities[current_city]["player_amount"] -= 1
+            data_unloader.cities[destination]["player_amount"] += 1
+            data_unloader.players_locations[player_id] = destination
+            data_unloader.actions -= 1
+            world_map_drawer.update_game_text(f"🛩️ Player {player_id + 1} shuttled to {destination}.")
+            world_map_drawer.update_player_marker(player_id, destination)
+            world_map_drawer.update_text(player_id)
+            popup.destroy()
+
+        tk.Button(popup, text="Confirm", command=confirm_flight).pack(pady=10)
+        popup.grab_set()
+        popup.wait_window()
+
+def oe_build_research_center(player_id) -> None:
+    """Performs the Build Research Center action without discarding for O.E. for the first time."""
+    global operations_expert_switch
     current_city = data_unloader.players_locations[player_id]
-
-    # 1. Check if current city has a research center
-    if not data_unloader.cities[current_city]["research_center"]:
-        world_map_drawer.update_game_text(f"⚠️ {current_city} does not have a research center.")
+    if data_unloader.cities[current_city]["research_center"] == 1:
+        messagebox.showinfo("Already Present", f"There is already a research center in {current_city}.")
         return
 
-    # 2. Find other cities with research centers
-    destinations = [city for city, data in data_unloader.cities.items()
-                    if data["research_center"] and city != current_city]
+    # Count total research centers
+    total_research_centers = sum(
+        city_data["research_center"] for city_data in data_unloader.cities.values())
 
-    if not destinations:
-        world_map_drawer.update_game_text("⚠️ No other research centers to shuttle to.")
-        return
+    if total_research_centers >= 6:
+        # Let player choose one to remove
+        other_cities = [name for name, data in data_unloader.cities.items()
+                        if data["research_center"] == 1 and name != current_city]
 
-    # 3. Popup for destination selection
-    popup = tk.Toplevel(world_map_drawer.root)
-    popup.title("Shuttle Flight - Choose Destination")
-    popup.geometry("350x200")
+        def choose_research_center_to_remove():
+            select_popup = tk.Toplevel()
+            select_popup.title("Remove a Research Center")
+            select_popup.geometry("400x300")
 
-    tk.Label(popup, text="Select a destination city with a research center:").pack(pady=10)
-    selected_city = tk.StringVar(value=destinations[0])
+            tk.Label(select_popup, text="Choose a city to remove its research center:").pack(pady=10)
 
-    dropdown = tk.OptionMenu(popup, selected_city, *destinations)
-    dropdown.pack(pady=10)
+            removable_city = tk.StringVar(value=other_cities[0])
+            city_menu = tk.OptionMenu(select_popup, removable_city, *other_cities)
+            city_menu.pack(pady=10)
 
-    def confirm_flight():
-        destination = selected_city.get()
-        data_unloader.cities[current_city]["player_amount"] -= 1
-        data_unloader.cities[destination]["player_amount"] += 1
-        data_unloader.players_locations[player_id] = destination
-        world_map_drawer.update_game_text(f"🛩️ Player {player_id + 1} shuttled to {destination}.")
-        world_map_drawer.update_player_marker(player_id, destination)
-        world_map_drawer.update_text(player_id)
-        popup.destroy()
+            def confirm_removal():
+                global operations_expert_switch
+                chosen_city = removable_city.get()
+                data_unloader.cities[chosen_city]["research_center"] = 0
+                data_unloader.cities[current_city]["research_center"] = 1
+                operations_expert_switch = False
+                data_unloader.actions -= 1
+                world_map_drawer.update_game_text(
+                    f"Moved research center from {chosen_city} to {current_city}.")
+                world_map_drawer.update_research_centers()
+                select_popup.destroy()
 
-    tk.Button(popup, text="Confirm", command=confirm_flight).pack(pady=10)
-    popup.grab_set()
-    popup.wait_window()
+            tk.Button(select_popup, text="Confirm", command=confirm_removal).pack(pady=10)
+            select_popup.grab_set()
+            select_popup.wait_window()
 
+        choose_research_center_to_remove()
+    else:
+        # Add research center normally
+        data_unloader.cities[current_city]["research_center"] = 1
+        data_unloader.actions -= 1
+        operations_expert_switch = False
+        world_map_drawer.update_game_text(
+            f"Player {player_id + 1} built research center in {current_city}!")
+        world_map_drawer.update_research_centers()
 
 def build_research_center(player_id) -> None:
     if world_map_drawer.can_perform_action():
         """Perform the action of building a research center."""
         print("Building a Research Center!")
-
-        if data_unloader.in_game_roles[player_id] == "Operations Expert":
-            print(f"Operations expert is rc")
-            research_center_action(player_id)
-
-        else: discard(player_id, 1, "build_research_center")
+        role = data_unloader.in_game_roles[player_id]
+        if role == "Operations Expert" and operations_expert_switch:
+            oe_build_research_center(player_id)
+        else:
+            discard(player_id, 1, "build_research_center")
 
 def treat_disease(player_id) -> None:
     if world_map_drawer.can_perform_action():
@@ -409,6 +412,7 @@ def treat_disease(player_id) -> None:
                 data_unloader.infection_status[disease_index] = 2
                 world_map_drawer.update_disease_status(disease_index)
 
+            data_unloader.actions -= 1
             world_map_drawer.update_game_text(message)
             world_map_drawer.update_text(player_id)
 
@@ -434,6 +438,7 @@ def treat_disease(player_id) -> None:
 
             popup.grab_set()
             popup.destroy()
+
 
 def share_knowledge(player_id) -> None:
     if world_map_drawer.can_perform_action():
@@ -479,6 +484,7 @@ def share_knowledge(player_id) -> None:
                 receiver_id = recipient_var.get()
                 data_unloader.players_hands[giver_id].remove(city_card)
                 data_unloader.players_hands[receiver_id].append(city_card)
+                data_unloader.actions -= 1
                 world_map_drawer.update_text(giver_id)
                 world_map_drawer.update_text(receiver_id)
                 world_map_drawer.update_game_text(
@@ -572,11 +578,11 @@ def share_knowledge(player_id) -> None:
                 data_unloader.players_hands[source_id].remove(card)
                 data_unloader.players_hands[target_id].append(card)
 
+                data_unloader.actions -= 1
                 world_map_drawer.update_text(source_id)
                 world_map_drawer.update_text(target_id)
                 world_map_drawer.update_game_text(
-                    f"Shared card '{chosen_name}' from Player {source_id + 1} to Player {target_id + 1}"
-                )
+                    f"Shared card '{chosen_name}' from Player {source_id + 1} to Player {target_id + 1}")
                 card_popup.destroy()
                 popup.destroy()
 
@@ -589,10 +595,16 @@ def share_knowledge(player_id) -> None:
         tk.Button(popup, text="Next", command=select_card).pack(pady=10)
         popup.grab_set()"""
 
+
 def discover_cure(player_id) -> None:
     if world_map_drawer.can_perform_action():
         """Perform the Discover Cure action."""
         print("Discovering cure!")
+        current_city = data_unloader.players_locations[player_id]
+        if data_unloader.cities[current_city]["research_center"] != 1:
+            world_map_drawer.update_game_text(
+                f"{data_unloader.players_locations[player_id]} has no research center!")
+            return
         role = data_unloader.in_game_roles[player_id]
         if role == "Scientist":
             discard(player_id, 4, "discover_cure")
@@ -625,7 +637,7 @@ def play_event_card(player_id) -> None:
             data_unloader.playercard_discard.append(card)
 
             # Placeholder: apply the effect (custom logic to be added per card)
-            name = card["name"] #EZT ITT CSINÁLD MEG BAZZE!
+            name = card["name"]  # EZT ITT CSINÁLD MEG BAZZE!
             """if name == "valami":
                 data_unloader.actions += 2"""
             world_map_drawer.update_game_text(f"Player {player_id + 1} played {name}")
@@ -637,11 +649,13 @@ def play_event_card(player_id) -> None:
 
         popup.grab_set()
 
+
 def skip_turn(player_id) -> None:
     """Skip the current player's turn."""
     if data_unloader.actions != 0:
         data_unloader.actions = 0
     print(f"{player_id}'s Turn skipped!")
+
 
 def drawing_phase(player_id) -> None:
     """
@@ -666,42 +680,48 @@ def drawing_phase(player_id) -> None:
 
     # Update text on the map to reflect new hand size
     world_map_drawer.update_text(player_id)
-    #time.sleep(1.5)  # Small pause for readability
+    # time.sleep(1.5)  # Small pause for readability
+
 
 def infection_phase(player_id) -> None:
-    """Checks if there is enough infection cards"""
-    import random
-
+    """
+    Draw one infection card and resolve it:
+    1. Infect the city with 1 cube of the card's color.
+    2. If the city already has 3 cubes, trigger an outbreak.
+    """
     infection_discard = data_unloader.infection_discard
     infections = data_unloader.infections
     infection_cubes = data_unloader.infection_cubes
     cities = data_unloader.cities
 
-    if len(infections) == 0:
-        random.shuffle(infection_discard)
-        infections = infection_discard[:]
-        infection_discard.clear()
-        print(f"Infection deck reshuffled")
-    else:
-        infection_card = infections.pop(0)  # Remove the first card from the deck
-        infection_discard.append(infection_card)  # Move to discard pile
+    # 1. Draw the top card from the infection deck
+    if infections:
+        infection_card = infections.pop(0)  # Top of the deck
+        infection_discard.append(infection_card)
 
         city_name = infection_card["name"]
         city_color = infection_card["color"]
-        color_index = ["yellow", "red", "blue", "black"].index(city_color)  # Find index for infection_cubes list
+        color_index = ["yellow", "red", "blue", "black"].index(city_color)
 
-        # Determine number of cubes based on draw order
-        cubes_to_add = 1
-        infection_cubes[color_index] -= cubes_to_add  # Reduce available cubes
+        print(f"🦠 Infecting {city_name} with 1 {city_color} cube.")
 
-        # Update infection levels in the city data
         if city_name in cities:
-            current_infection = cities[city_name]["infection_levels"][color_index]
-            new_infection = min(current_infection + cubes_to_add, 3)  # Max infection is 3
-            cities[city_name]["infection_levels"][color_index] = new_infection
+            current_level = cities[city_name]["infection_levels"][color_index]
+            cubes_to_add = 1
 
-    world_map_drawer.update_text(player_id)
-    print(f"1 cube added to {city_name}")
+            if current_level + cubes_to_add > 3:
+                # 3 cubes already there — outbreak occurs
+                print(f"💥 Outbreak triggered in {city_name}!")
+                check_game_over()
+                trigger_outbreak(city_name, color_index)
+            else:
+                # Normal infection
+                check_game_over()
+                cities[city_name]["infection_levels"][color_index] += 1
+                infection_cubes[color_index] -= 1
+                print(f"✅ 1 {city_color} cube added to {city_name}.")
+
+        world_map_drawer.update_text(player_id)
 
 
 def draw_player_card(player_id) -> None:
@@ -711,13 +731,14 @@ def draw_player_card(player_id) -> None:
         print("⛔ Player draw is currently locked.")
         return
     check_game_over()
-    if playercards_drawn<remaining_player_cards:
+    if playercards_drawn < remaining_player_cards:
         drawing_phase(player_id)
         playercards_drawn += 1
         print("Drawing playercard!")
     if playercards_drawn == remaining_player_cards:
         print("End of drawing phase!")
         player_draw_locked = True
+
 
 def draw_infection_card(player_id) -> None:
     """Draw an infection card for the current player."""
@@ -730,6 +751,7 @@ def draw_infection_card(player_id) -> None:
         print("End of turn!")
         transition_to_next_phase(player_id)
 
+
 # Call this function before transitioning to a new phase
 def transition_to_next_phase(player_id):
     from pandemic import turn_handler
@@ -737,6 +759,7 @@ def transition_to_next_phase(player_id):
 
     # Just go to the next player with a short pause
     turn_handler.next_turn()
+
 
 def handle_epidemic(player_id):
     """
@@ -780,6 +803,7 @@ def handle_epidemic(player_id):
     data_unloader.infections = data_unloader.infection_discard + data_unloader.infections
     data_unloader.infection_discard.clear()
     world_map_drawer.update_text(player_id)
+
 
 def trigger_outbreak(city_name, color_index):
     colors = ["yellow", "red", "blue", "black"]
