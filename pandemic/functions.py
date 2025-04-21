@@ -18,6 +18,7 @@ player_draw_locked = False
 playercards_drawn = 0
 infectioncards_drawn = 0
 operations_expert_switch = True
+quarantined_cities = ["Atlanta", "Washington", "Miami", "Chicago"]
 
 if not BUILDING_DOCS:
     def discard(player_id, amount_to_discard, purpose):
@@ -86,6 +87,11 @@ if not BUILDING_DOCS:
                 world_map_drawer.update_game_text(f"Player {player_id + 1} moved to {destination_card['name']}!")
                 world_map_drawer.update_player_marker(player_id, destination_card["name"])
                 world_map_drawer.update_text(player_id)
+                if role == "Quarantine Specialist":
+                    quarantined_cities.clear()
+                    quarantined_cities.append(destination_card["name"])
+                    for neighbour in data_unloader.cities[destination_card["name"]]["relations"]:
+                        quarantined_cities.append(neighbour)
 
             elif purpose == "charter_flight":
                 global operations_expert_switch
@@ -123,6 +129,11 @@ if not BUILDING_DOCS:
                         dest_popup.destroy()
                         if role == "Operations Expert":
                             operations_expert_switch = False
+                        elif role == "Quarantine Specialist":
+                            quarantined_cities.clear()
+                            quarantined_cities.append(destination)
+                            for neighbour in data_unloader.cities[destination]["relations"]:
+                                quarantined_cities.append(neighbour)
 
                     tk.Button(dest_popup, text="Confirm", command=confirm_destination).pack(pady=10)
                     dest_popup.grab_set()
@@ -218,9 +229,9 @@ def reset_card_draws():
     player_draw_locked = False
     operations_expert_switch = True
 
-
 def drive_ferry(player_id) -> None:
     if world_map_drawer.can_perform_action():
+        global quarantined_cities
         """Perform the Drive/Ferry action."""
         print("Drive/Ferry action triggered!")
         role = data_unloader.in_game_roles[player_id]
@@ -243,6 +254,11 @@ def drive_ferry(player_id) -> None:
             world_map_drawer.update_player_marker(player_id, destination)
             world_map_drawer.update_text(player_id)
             popup.destroy()
+            if role == "Quarantine Specialist":
+                quarantined_cities.clear()
+                quarantined_cities.append(destination)
+                for neighbour in data_unloader.cities[destination]["relations"]:
+                    quarantined_cities.append(neighbour)
 
         for city in neighbors:
             tk.Button(
@@ -252,13 +268,11 @@ def drive_ferry(player_id) -> None:
                 command=lambda c=city: handle_selection(c)
             ).pack(pady=3)
 
-
 def direct_flight(player_id) -> None:
     if world_map_drawer.can_perform_action():
         """Perform the Direct Flight action."""
         print("Direct Flight action triggered!")
         discard(player_id, 1, "direct_flight")
-
 
 def charter_flight(player_id) -> None:
     if world_map_drawer.can_perform_action():
@@ -272,6 +286,7 @@ def shuttle_flight(player_id) -> None:
         """Perform the Shuttle Flight action."""
         print("Shuttle Flight action triggered!")
         current_city = data_unloader.players_locations[player_id]
+        role = data_unloader.in_game_roles[player_id]
 
         # 1. Check if current city has a research center
         if not data_unloader.cities[current_city]["research_center"]:
@@ -307,6 +322,11 @@ def shuttle_flight(player_id) -> None:
             world_map_drawer.update_player_marker(player_id, destination)
             world_map_drawer.update_text(player_id)
             popup.destroy()
+            if role == "Quarantine Specialist":
+                quarantined_cities.clear()
+                quarantined_cities.append(destination)
+                for neighbour in data_unloader.cities[destination]["relations"]:
+                    quarantined_cities.append(neighbour)
 
         tk.Button(popup, text="Confirm", command=confirm_flight).pack(pady=10)
         popup.grab_set()
@@ -656,14 +676,12 @@ def skip_turn(player_id) -> None:
         data_unloader.actions = 0
     print(f"{player_id}'s Turn skipped!")
 
-
 def drawing_phase(player_id) -> None:
     """
     Execute the drawing phase for the current player.
     Draws 2 player cards, handles epidemic logic, and transitions to infection phase.
     """
     hand = data_unloader.current_hand
-
     card = data_unloader.player_deck.pop(0)
     print(f"🎴 Player {player_id + 1} drew: {card['name']}")
 
@@ -680,8 +698,6 @@ def drawing_phase(player_id) -> None:
 
     # Update text on the map to reflect new hand size
     world_map_drawer.update_text(player_id)
-    # time.sleep(1.5)  # Small pause for readability
-
 
 def infection_phase(player_id) -> None:
     """
@@ -698,14 +714,13 @@ def infection_phase(player_id) -> None:
     if infections:
         infection_card = infections.pop(0)  # Top of the deck
         infection_discard.append(infection_card)
-
         city_name = infection_card["name"]
         city_color = infection_card["color"]
         color_index = ["yellow", "red", "blue", "black"].index(city_color)
 
         print(f"🦠 Infecting {city_name} with 1 {city_color} cube.")
 
-        if city_name in cities:
+        if city_name in cities and city_name not in quarantined_cities:
             current_level = cities[city_name]["infection_levels"][color_index]
             cubes_to_add = 1
 
@@ -720,9 +735,10 @@ def infection_phase(player_id) -> None:
                 cities[city_name]["infection_levels"][color_index] += 1
                 infection_cubes[color_index] -= 1
                 print(f"✅ 1 {city_color} cube added to {city_name}.")
-
-        world_map_drawer.update_text(player_id)
-
+            world_map_drawer.update_text(player_id)
+        else:
+            world_map_drawer.update_game_text("Infection/Outbreak prevented!")
+            return
 
 def draw_player_card(player_id) -> None:
     """Draw a player card for the current player."""
@@ -751,7 +767,6 @@ def draw_infection_card(player_id) -> None:
         print("End of turn!")
         transition_to_next_phase(player_id)
 
-
 # Call this function before transitioning to a new phase
 def transition_to_next_phase(player_id):
     from pandemic import turn_handler
@@ -759,7 +774,6 @@ def transition_to_next_phase(player_id):
 
     # Just go to the next player with a short pause
     turn_handler.next_turn()
-
 
 def handle_epidemic(player_id):
     """
@@ -778,24 +792,26 @@ def handle_epidemic(player_id):
         color = bottom_card["color"]
         color_index = ["yellow", "red", "blue", "black"].index(color)
 
-        print(f"☣️ Epidemic in {city}! Adding 3 {color} cubes.")
+        if city not in quarantined_cities:
+            print(f"☣️ Epidemic in {city}! Adding 3 {color} cubes.")
+            current_level = data_unloader.cities[city]["infection_levels"][color_index]
+            cubes_to_add = 3
 
-        current_level = data_unloader.cities[city]["infection_levels"][color_index]
-        cubes_to_add = 3
-
-        if current_level + cubes_to_add > 3:
-            # Outbreak should happen
-            cubes_added = 3 - current_level  # Only add up to 3
-            data_unloader.cities[city]["infection_levels"][color_index] = 3
-            data_unloader.infection_cubes[color_index] -= cubes_added
-            check_game_over()
-            trigger_outbreak(city, color_index)
+            if current_level + cubes_to_add > 3:
+                # Outbreak should happen
+                cubes_added = 3 - current_level  # Only add up to 3
+                data_unloader.cities[city]["infection_levels"][color_index] = 3
+                data_unloader.infection_cubes[color_index] -= cubes_added
+                check_game_over()
+                trigger_outbreak(city, color_index)
+            else:
+                # No outbreak, normal infection
+                data_unloader.cities[city]["infection_levels"][color_index] = current_level + cubes_to_add
+                data_unloader.infection_cubes[color_index] -= cubes_to_add
+                check_game_over()
         else:
-            # No outbreak, normal infection
-            data_unloader.cities[city]["infection_levels"][color_index] = current_level + cubes_to_add
-            data_unloader.infection_cubes[color_index] -= cubes_to_add
-            check_game_over()
-
+            world_map_drawer.update_game_text("Infection/Outbreak prevented!")
+            return
         data_unloader.infection_discard.append(bottom_card)
 
     # 3. Intensify: Shuffle discard pile and place on top
@@ -803,7 +819,6 @@ def handle_epidemic(player_id):
     data_unloader.infections = data_unloader.infection_discard + data_unloader.infections
     data_unloader.infection_discard.clear()
     world_map_drawer.update_text(player_id)
-
 
 def trigger_outbreak(city_name, color_index):
     colors = ["yellow", "red", "blue", "black"]
@@ -814,7 +829,7 @@ def trigger_outbreak(city_name, color_index):
     while outbreak_queue:
         city = outbreak_queue.pop(0)
 
-        if city in protected_cities:
+        if city in protected_cities or city in quarantined_cities:
             continue  # Don't outbreak the same city twice in this chain
 
         print(f"💥 Outbreak of {color} in {city}!")
@@ -826,16 +841,19 @@ def trigger_outbreak(city_name, color_index):
         for neighbor in data_unloader.cities[city]["relations"]:
             current_level = data_unloader.cities[neighbor]["infection_levels"][color_index]
             cubes_to_add = 1
-
-            if current_level + cubes_to_add > 3:
-                # Outbreak should happen
-                cubes_added = 3 - current_level  # Only add up to 3
-                data_unloader.cities[neighbor]["infection_levels"][color_index] = 3
-                data_unloader.infection_cubes[color_index] -= cubes_added
-                check_game_over()
-                outbreak_queue.append(neighbor)
+            if neighbor not in quarantined_cities:
+                if current_level + cubes_to_add > 3:
+                    # Outbreak should happen
+                    cubes_added = 3 - current_level  # Only add up to 3
+                    data_unloader.cities[neighbor]["infection_levels"][color_index] = 3
+                    data_unloader.infection_cubes[color_index] -= cubes_added
+                    check_game_over()
+                    outbreak_queue.append(neighbor)
+                else:
+                    # No outbreak, normal infection
+                    data_unloader.cities[neighbor]["infection_levels"][color_index] = current_level + cubes_to_add
+                    data_unloader.infection_cubes[color_index] -= cubes_to_add
+                    check_game_over()
             else:
-                # No outbreak, normal infection
-                data_unloader.cities[neighbor]["infection_levels"][color_index] = current_level + cubes_to_add
-                data_unloader.infection_cubes[color_index] -= cubes_to_add
-                check_game_over()
+                world_map_drawer.update_game_text("Infection/Outbreak prevented!")
+                return
