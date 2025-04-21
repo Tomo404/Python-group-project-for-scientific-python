@@ -136,8 +136,24 @@ if not BUILDING_DOCS:
                 destination_card = selected_cards[0]
                 current_city = data_unloader.players_locations[player_id]
 
-                if data_unloader.in_game_roles[player_id] == "Operations Expert" and data_unloader.cities.get(data_unloader.players_locations[player_id], {}).get("research_center", False):
-                    print(f"OE can charter without matching card")
+                if data_unloader.in_game_roles[player_id] == "Operations Expert":
+
+                    if destination_card["name"] == current_city:
+                            print(f"Normal charter flight")
+
+                    elif data_unloader.cities.get(current_city, {}).get("research_center", False):
+
+                        if data_unloader.operations_expert_used[player_id]:
+                            messagebox.showwarning("Already Used", "You can only use this ability once per turn.")
+                            return
+                        else:
+                            data_unloader.operations_expert_used[player_id] = True
+                            print(f"✅ OE ability used for Player {player_id}")
+
+                    elif (destination_card["name"] != current_city):
+                        messagebox.showerror("Invalid Selection",f"You must discard the current city card: {current_city}.")
+                        return
+
 
                 elif destination_card["name"] != current_city:
                     messagebox.showerror("Invalid Selection",
@@ -253,6 +269,7 @@ def reset_card_draws():
     playercards_drawn = 0
     infectioncards_drawn = 0
     player_draw_locked = False
+    data_unloader.operations_expert_used = [False for _ in range(len(data_unloader.players_hands))]
 
 def drive_ferry(player_id) -> None:
     if world_map_drawer.can_perform_action():

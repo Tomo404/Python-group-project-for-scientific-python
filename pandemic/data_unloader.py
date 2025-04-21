@@ -249,6 +249,8 @@ finalize_player_deck()  # Add epidemic cards and shuffle
 
 players_locations = {i: "Atlanta" for i in range(players)}
 
+operations_expert_used = [False for _ in range(players)]
+
 print(f"✅ Player deck ready with {len(player_deck)} cards, including {epidemic_cards} epidemic cards.")
 
 if "Atlanta" in cities:

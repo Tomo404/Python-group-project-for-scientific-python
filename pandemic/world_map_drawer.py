@@ -542,13 +542,13 @@ def start_gui(player_id, player_role):
     from pandemic import turn_handler  # ← avoid circular import early
     root.after(1000, turn_handler.next_turn)
 
-def change_player_role():
-    """Sets starting player operation expert for testing"""
-
-    roles = data_unloader.in_game_roles
-    roles[1] = "Operations Expert" #change this if you wanna test other roles
-    print(f"Player roles are set to: {data_unloader.in_game_roles}")
-
-    update_game_text(player_id)
-
-change_player_role()
+# def change_player_role():
+#     """Sets starting player operation expert for testing"""
+#
+#     roles = data_unloader.in_game_roles
+#     roles[1] = "Operations Expert" #change this if you wanna test other roles
+#     print(f"Player roles are set to: {data_unloader.in_game_roles}")
+#
+#     update_game_text(player_id)
+#
+# change_player_role()
