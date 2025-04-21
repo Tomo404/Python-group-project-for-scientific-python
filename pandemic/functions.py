@@ -719,8 +719,7 @@ def infection_phase(player_id) -> None:
         color_index = ["yellow", "red", "blue", "black"].index(city_color)
 
         print(f"🦠 Infecting {city_name} with 1 {city_color} cube.")
-
-        if city_name in cities and city_name not in quarantined_cities:
+        if city_name in cities and city_name not in quarantined_cities and data_unloader.infection_status[color_index] != 2:
             current_level = cities[city_name]["infection_levels"][color_index]
             cubes_to_add = 1
 
@@ -792,7 +791,7 @@ def handle_epidemic(player_id):
         color = bottom_card["color"]
         color_index = ["yellow", "red", "blue", "black"].index(color)
 
-        if city not in quarantined_cities:
+        if city not in quarantined_cities and data_unloader.infection_status[color_index] != 2:
             print(f"☣️ Epidemic in {city}! Adding 3 {color} cubes.")
             current_level = data_unloader.cities[city]["infection_levels"][color_index]
             cubes_to_add = 3
@@ -841,7 +840,7 @@ def trigger_outbreak(city_name, color_index):
         for neighbor in data_unloader.cities[city]["relations"]:
             current_level = data_unloader.cities[neighbor]["infection_levels"][color_index]
             cubes_to_add = 1
-            if neighbor not in quarantined_cities:
+            if neighbor not in quarantined_cities and data_unloader.infection_status[color_index] != 2:
                 if current_level + cubes_to_add > 3:
                     # Outbreak should happen
                     cubes_added = 3 - current_level  # Only add up to 3
