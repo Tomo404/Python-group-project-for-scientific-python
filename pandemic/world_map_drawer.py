@@ -57,8 +57,6 @@ def create_window():
 
 def can_perform_action():
     if data_unloader.actions > 0:
-        data_unloader.actions -= 1
-        update_text(player_id) # Ensure UI updates
         return True
     else:
         import functions
@@ -316,22 +314,21 @@ def setup_skip_turn_button(event):
         skip_button.place(x=4 + x - button_width // 2, y=y - button_height // 2, width=button_width, height=button_height)
 
 outbreak_marker_id = None
-outbreak_marker = 0
 
 def update_outbreak_marker():
     if not BUILDING_DOCS:
         """Updates the outbreak marker position when an outbreak occurs."""
-        global outbreak_marker, outbreak_marker_id
+        global outbreak_marker_id
 
         # Delete the previous outbreak marker
         if outbreak_marker_id:
             canvas.delete(outbreak_marker_id)
 
         # Determine the new position
-        if outbreak_marker % 2 == 1:
-            x, y = (201 * scale_factor) + x_offset, ((548 + outbreak_marker * 36.5) * scale_factor) + y_offset
-        elif outbreak_marker % 2 == 0 and outbreak_marker > 0:
-            x, y = (157 * scale_factor) + x_offset, ((587 + (outbreak_marker - 1) * 35.5) * scale_factor) + y_offset
+        if data_unloader.outbreak_marker % 2 == 1:
+            x, y = (201 * scale_factor) + x_offset, ((548 + data_unloader.outbreak_marker * 36.5) * scale_factor) + y_offset
+        elif data_unloader.outbreak_marker % 2 == 0 and data_unloader.outbreak_marker > 0:
+            x, y = (157 * scale_factor) + x_offset, ((587 + (data_unloader.outbreak_marker - 1) * 35.5) * scale_factor) + y_offset
         else:
             x, y = (157 * scale_factor) + x_offset, (547 * scale_factor) + y_offset
 
