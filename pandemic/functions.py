@@ -19,6 +19,9 @@ playercards_drawn = 0
 infectioncards_drawn = 0
 operations_expert_switch = True
 quarantined_cities = ["Atlanta", "Washington", "Miami", "Chicago"]
+mobile_hospital_active = False
+improved_sanitation_active = False
+infectionless_night = False
 
 if not BUILDING_DOCS:
     def discard(player_id, amount_to_discard, purpose):
@@ -215,10 +218,9 @@ def check_game_over():  # checks if one of the game over requirements is met: 3 
         return True
     return False
 
-
 # Function to reset the card draws at the start of each phase
-def reset_card_draws():
-    global remaining_player_cards, remaining_infection_cards, operations_expert_switch
+def reset_card_draws(player_id):
+    global remaining_player_cards, remaining_infection_cards, operations_expert_switch, improved_sanitation_active
     global playercards_drawn, infectioncards_drawn, player_draw_locked  # ✅ add this
     remaining_player_cards = 2  # Reset player card draws (fixed)
     remaining_infection_cards = data_unloader.infection_rate_marker_amount[
@@ -228,10 +230,30 @@ def reset_card_draws():
     infectioncards_drawn = 0
     player_draw_locked = False
     operations_expert_switch = True
+    world_map_drawer.update_text(player_id)
+    # Check if any event card is active
+    for card in data_unloader.playercard_discard:
+        if card.get("name") == "Infection Zone Ban" and card.get("active"):
+            # If active, increment its internal timer
+            card["timer"] = card.get("timer", 0) + 1
+            # If it has cycled back to the original player, deactivate it
+            if card["timer"] >= len(data_unloader.in_game_roles):
+                card["active"] = False
+                card["timer"] = 0
+                world_map_drawer.update_game_text("🧼 Infection Zone Ban effect has ended.")
+        elif card.get("name") == "Improved Sanitation" and card.get("active"):
+            # If active, increment its internal timer
+            card["timer"] = card.get("timer", 0) + 1
+            # If it has cycled back to the original player, deactivate it
+            if card["timer"] >= len(data_unloader.in_game_roles):
+                card["active"] = False
+                card["timer"] = 0
+                improved_sanitation_active = False
+                world_map_drawer.update_game_text("🧼 Improved Sanitation effect has ended.")
 
 def drive_ferry(player_id) -> None:
     if world_map_drawer.can_perform_action():
-        global quarantined_cities
+        global quarantined_cities, mobile_hospital_active
         """Perform the Drive/Ferry action."""
         print("Drive/Ferry action triggered!")
         role = data_unloader.in_game_roles[player_id]
@@ -259,6 +281,53 @@ def drive_ferry(player_id) -> None:
                 quarantined_cities.append(destination)
                 for neighbour in data_unloader.cities[destination]["relations"]:
                     quarantined_cities.append(neighbour)
+            elif mobile_hospital_active:
+                infection_levels = data_unloader.cities[destination]["infection_levels"]
+
+                # Find which diseases are present
+                present_diseases = [(i, level) for i, level in enumerate(infection_levels) if level > 0]
+
+                if not present_diseases:
+                    world_map_drawer.update_game_text(f"No disease cubes to remove in {destination}.")
+                    return
+
+                # Only one disease present — remove it automatically
+                if len(present_diseases) == 1:
+                    disease_index = present_diseases[0][0]
+                    data_unloader.cities[destination]["infection_levels"][disease_index] -= 1
+                    data_unloader.infection_cubes[disease_index] += 1
+                    world_map_drawer.update_game_text(
+                        f"🛻 Mobile Hospital: Removed 1 {['yellow', 'red', 'blue', 'black'][disease_index]} cube from {current_city}."
+                    )
+                    world_map_drawer.update_text(player_id)
+                    return
+
+                def remove_and_close(index, popup_window):
+                    data_unloader.cities[destination]["infection_levels"][index] -= 1
+                    data_unloader.infection_cubes[index] += 1
+                    world_map_drawer.update_game_text(
+                        f"🛻 Mobile Hospital: Removed 1 {['yellow', 'red', 'blue', 'black'][index]} cube from {current_city}."
+                    )
+                    world_map_drawer.update_text(player_id)
+                    popup_window.destroy()
+
+                    # Multiple infections — new popup!
+                    hospital_popup = tk.Toplevel(world_map_drawer.root)
+                    hospital_popup.title("Mobile Hospital - Choose Disease to Remove")
+                    hospital_popup.geometry("350x200")
+
+                    tk.Label(hospital_popup,
+                             text=f"{destination} has multiple infections. Choose one to remove:").pack(pady=10)
+
+                    for i, lvl in present_diseases:
+                        color = ["yellow", "red", "blue", "black"][i]
+                        tk.Button(
+                            hospital_popup,
+                            text=f"{color.capitalize()} ({lvl} cubes)",
+                            command=lambda idx=i: remove_and_close(idx, hospital_popup)
+                        ).pack(pady=5)
+
+                    hospital_popup.grab_set()
 
         for city in neighbors:
             tk.Button(
@@ -279,7 +348,6 @@ def charter_flight(player_id) -> None:
         """Perform the Charter Flight action."""
         print("Charter Flight action triggered!")
         discard(player_id, 1, "charter_flight")
-
 
 def shuttle_flight(player_id) -> None:
     if world_map_drawer.can_perform_action():
@@ -386,6 +454,71 @@ def oe_build_research_center(player_id) -> None:
             f"Player {player_id + 1} built research center in {current_city}!")
         world_map_drawer.update_research_centers()
 
+def government_grant_popup(player_id) -> None:
+    """Event card: Add a research center to any city (no city card needed)."""
+    # Get list of cities without research centers
+    available_cities = [name for name, data in data_unloader.cities.items() if data["research_center"] == 0]
+
+    if not available_cities:
+        messagebox.showinfo("No Available Cities", "All cities already have research centers.")
+        return
+
+    total_research_centers = sum(city["research_center"] for city in data_unloader.cities.values())
+
+    popup = tk.Toplevel()
+    popup.title("Government Grant")
+    popup.geometry("400x250")
+
+    tk.Label(popup, text="Select a city to build a research center:", font=("Arial", 10)).pack(pady=10)
+
+    city_var = tk.StringVar(value=available_cities[0])
+    tk.OptionMenu(popup, city_var, *available_cities).pack(pady=5)
+
+    def confirm_gg():
+        selected_city = city_var.get()
+        if total_research_centers >= 6:
+            # Too many research centers, must remove one first
+            existing_rcs = [name for name, data in data_unloader.cities.items() if data["research_center"] == 1 and name != selected_city]
+
+            if not existing_rcs:
+                messagebox.showerror("No Removable RCs", "No other research center to move.")
+                popup.destroy()
+                return
+
+            def choose_removal():
+                removal_popup = tk.Toplevel()
+                removal_popup.title("Remove Existing Research Center")
+                removal_popup.geometry("400x250")
+
+                tk.Label(removal_popup, text="Choose a city to remove its research center:").pack(pady=10)
+
+                removal_var = tk.StringVar(value=existing_rcs[0])
+                tk.OptionMenu(removal_popup, removal_var, *existing_rcs).pack(pady=10)
+
+                def confirm_removal():
+                    removed = removal_var.get()
+                    data_unloader.cities[removed]["research_center"] = 0
+                    data_unloader.cities[selected_city]["research_center"] = 1
+                    world_map_drawer.update_game_text(f"🏛️ Government Grant: Moved RC from {removed} to {selected_city}.")
+                    world_map_drawer.update_research_centers()
+                    removal_popup.destroy()
+                    popup.destroy()
+
+                tk.Button(removal_popup, text="Confirm", command=confirm_removal).pack(pady=10)
+                removal_popup.grab_set()
+                removal_popup.wait_window()
+
+            choose_removal()
+        else:
+            # Fewer than 6, just place it
+            data_unloader.cities[selected_city]["research_center"] = 1
+            world_map_drawer.update_game_text(f"🏛️ Government Grant: Built research center in {selected_city}.")
+            world_map_drawer.update_research_centers()
+            popup.destroy()
+
+    tk.Button(popup, text="Build", command=confirm_gg).pack(pady=15)
+    popup.grab_set()
+
 def build_research_center(player_id) -> None:
     if world_map_drawer.can_perform_action():
         """Perform the action of building a research center."""
@@ -421,6 +554,15 @@ def treat_disease(player_id) -> None:
                 data_unloader.infection_cubes[disease_index] += cubes
                 data_unloader.cities[current_city]["infection_levels"][disease_index] = 0
                 message = f"Player {player_id + 1} (Medic) treated all {disease_color} cubes in {current_city}."
+            elif improved_sanitation_active:
+                if data_unloader.cities[current_city]["infection_levels"][disease_index] > 1:
+                    data_unloader.infection_cubes[disease_index] += 2
+                    data_unloader.cities[current_city]["infection_levels"][disease_index] -= 2
+                    message = f"Player {player_id + 1} treated 2 {disease_color} cube in {current_city} with Improved Sanitation."
+                elif data_unloader.cities[current_city]["infection_levels"][disease_index] == 1:
+                    data_unloader.infection_cubes[disease_index] += 1
+                    data_unloader.cities[current_city]["infection_levels"][disease_index] -= 1
+                    message = f"Player {player_id + 1} treated 1 {disease_color} cube in {current_city} with Improved Sanitation."
             else:
                 # Remove one cube
                 data_unloader.infection_cubes[disease_index] += 1
@@ -652,14 +794,32 @@ def play_event_card(player_id) -> None:
         tk.Label(popup, text="Select an event card to play:").pack(pady=10)
 
         def play(card):
+            global mobile_hospital_active, improved_sanitation_active, infectionless_night
             # Remove from hand and add to discard pile
             hand.remove(card)
             data_unloader.playercard_discard.append(card)
 
             # Placeholder: apply the effect (custom logic to be added per card)
             name = card["name"]  # EZT ITT CSINÁLD MEG BAZZE!
-            """if name == "valami":
-                data_unloader.actions += 2"""
+            if name == "Borrowed Time":
+                data_unloader.actions += 2
+                world_map_drawer.update_text(player_id)
+            elif name == "Remote Treatment":
+                remote_treatment_popup(player_id)
+                world_map_drawer.update_text(player_id)
+            elif name == "Mobile Hospital":
+                mobile_hospital_active = True
+            elif name == "Government Grant":
+                government_grant_popup(player_id)
+            elif name == "Infection Zone Ban":
+                card["active"] = True
+                card["timer"] = 0
+            elif name == "Improved Sanitation":
+                card["active"] = True
+                card["timer"] = 0
+                improved_sanitation_active = True
+            elif name == "One Quiet Night":
+                infectionless_night = True
             world_map_drawer.update_game_text(f"Player {player_id + 1} played {name}")
             popup.destroy()
 
@@ -669,12 +829,92 @@ def play_event_card(player_id) -> None:
 
         popup.grab_set()
 
+def remote_treatment_popup(player_id):
+    max_treats = 2
+    infection_colors = ["yellow", "red", "blue", "black"]
+
+    popup = tk.Toplevel(world_map_drawer.root)
+    popup.title("Remote Treatment")
+    popup.geometry("500x400")
+
+    tk.Label(popup, text="Select up to 2 cities and remove one cube from each:").pack(pady=10)
+
+    cities = data_unloader.cities
+    city_vars = []
+    color_vars = []
+    color_menus = []
+
+    def get_valid_colors(city_name):
+        if not city_name or city_name not in cities:
+            return []
+        levels = cities[city_name]["infection_levels"]
+        return [infection_colors[i] for i, lvl in enumerate(levels) if lvl > 0]
+
+    def update_color_options(index, *args):
+        selected_city = city_vars[index].get()
+        menu = color_menus[index]["menu"]
+        menu.delete(0, "end")
+        valid_colors = get_valid_colors(selected_city)
+        color_vars[index].set(valid_colors[0] if valid_colors else "")
+        for color in valid_colors:
+            menu.add_command(label=color, command=lambda c=color: color_vars[index].set(c))
+
+    for i in range(max_treats):
+        frame = tk.Frame(popup)
+        frame.pack(pady=5)
+
+        tk.Label(frame, text=f"Target {i + 1}").grid(row=0, column=0, padx=5)
+
+        city_var = tk.StringVar()
+        city_menu = tk.OptionMenu(frame, city_var, *cities.keys())
+        city_menu.grid(row=0, column=1, padx=5)
+
+        color_var = tk.StringVar()
+        color_menu = tk.OptionMenu(frame, color_var, "")
+        color_menu.grid(row=0, column=2, padx=5)
+
+        def make_trace_callback(index):
+            def callback(var_name, index_name, operation):
+                update_color_options(index)
+
+            return callback
+
+        city_var.trace_add("write", make_trace_callback(i))
+        city_vars.append(city_var)
+        color_vars.append(color_var)
+        color_menus.append(color_menu)
+
+    def confirm():
+        treated = 0
+        for i in range(max_treats):
+            city = city_vars[i].get()
+            color = color_vars[i].get()
+            if not city or not color or city not in cities:
+                continue
+
+            color_index = infection_colors.index(color)
+            if cities[city]["infection_levels"][color_index] > 0:
+                cities[city]["infection_levels"][color_index] -= 1
+                data_unloader.infection_cubes[color_index] += 1
+                world_map_drawer.update_game_text(f"💉 Removed 1 {color} cube from {city}.")
+                treated += 1
+
+        if treated == 0:
+            messagebox.showinfo("No Action", "No cubes were removed.")
+        else:
+            world_map_drawer.update_text(player_id)
+
+        popup.destroy()
+
+    tk.Button(popup, text="Confirm", command=confirm).pack(pady=20)
+    popup.grab_set()
 
 def skip_turn(player_id) -> None:
     """Skip the current player's turn."""
     if data_unloader.actions != 0:
         data_unloader.actions = 0
-    print(f"{player_id}'s Turn skipped!")
+        print(f"{player_id}'s Turn skipped!")
+    world_map_drawer.update_text(player_id)
 
 def drawing_phase(player_id) -> None:
     """
@@ -741,7 +981,7 @@ def infection_phase(player_id) -> None:
 
 def draw_player_card(player_id) -> None:
     """Draw a player card for the current player."""
-    global playercards_drawn, player_draw_locked
+    global playercards_drawn, player_draw_locked, infectionless_night
     if player_draw_locked:
         print("⛔ Player draw is currently locked.")
         return
@@ -750,10 +990,13 @@ def draw_player_card(player_id) -> None:
         drawing_phase(player_id)
         playercards_drawn += 1
         print("Drawing playercard!")
-    if playercards_drawn == remaining_player_cards:
+    if playercards_drawn == remaining_player_cards and not infectionless_night:
         print("End of drawing phase!")
         player_draw_locked = True
-
+    elif playercards_drawn == remaining_player_cards and infectionless_night:
+        print("End of turn!")
+        transition_to_next_phase(player_id)
+        infectionless_night = False
 
 def draw_infection_card(player_id) -> None:
     """Draw an infection card for the current player."""
@@ -769,7 +1012,7 @@ def draw_infection_card(player_id) -> None:
 # Call this function before transitioning to a new phase
 def transition_to_next_phase(player_id):
     from pandemic import turn_handler
-    reset_card_draws()
+    reset_card_draws(player_id)
 
     # Just go to the next player with a short pause
     turn_handler.next_turn()
@@ -833,6 +1076,7 @@ def trigger_outbreak(city_name, color_index):
 
         print(f"💥 Outbreak of {color} in {city}!")
         data_unloader.outbreak_marker += 1
+        world_map_drawer.update_outbreak_marker()
         check_game_over()
 
         protected_cities.add(city)
@@ -842,12 +1086,26 @@ def trigger_outbreak(city_name, color_index):
             cubes_to_add = 1
             if neighbor not in quarantined_cities and data_unloader.infection_status[color_index] != 2:
                 if current_level + cubes_to_add > 3:
-                    # Outbreak should happen
-                    cubes_added = 3 - current_level  # Only add up to 3
-                    data_unloader.cities[neighbor]["infection_levels"][color_index] = 3
-                    data_unloader.infection_cubes[color_index] -= cubes_added
-                    check_game_over()
-                    outbreak_queue.append(neighbor)
+                    # Check for active Infection Zone Ban in discard
+                    iz_ban_active = any(
+                        card.get("name") == "Infection Zone Ban" and card.get("active", False)
+                        for card in data_unloader.playercard_discard
+                    )
+
+                    if iz_ban_active:
+                        world_map_drawer.update_game_text(
+                            f"🛑 Chain reaction outbreak in {neighbor} prevented by Infection Zone Ban!"
+                        )
+                        # Still cap at 3 cubes, no outbreak occurs
+                        data_unloader.cities[neighbor]["infection_levels"][color_index] = 3
+                        data_unloader.infection_cubes[color_index] -= (3 - current_level)
+                    else:
+                        # Normal outbreak
+                        cubes_added = 3 - current_level  # Add only up to 3 cubes
+                        data_unloader.cities[neighbor]["infection_levels"][color_index] = 3
+                        data_unloader.infection_cubes[color_index] -= cubes_added
+                        check_game_over()
+                        outbreak_queue.append(neighbor)
                 else:
                     # No outbreak, normal infection
                     data_unloader.cities[neighbor]["infection_levels"][color_index] = current_level + cubes_to_add
