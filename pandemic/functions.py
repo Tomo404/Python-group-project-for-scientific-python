@@ -28,10 +28,11 @@ if not BUILDING_DOCS:
         # Get the current player's hand and role
         role = data_unloader.in_game_roles[player_id]
         player_hand = data_unloader.current_hand
+        action_confirmed = False  # <‑‑ NEW FLAG
         selected_cards = []
 
         def submit_selection():
-            nonlocal selected_cards
+            nonlocal selected_cards, action_confirmed
             # Gather the cards selected by the player (checkboxes)
             selected_cards = [card for name, (var, card) in card_vars.items() if var.get() == 1]
 
@@ -74,6 +75,7 @@ if not BUILDING_DOCS:
                         f"💊 Player {player_id + 1} discovered a cure for the {cure_color} disease!")
                     world_map_drawer.update_disease_status(disease_index)
                     world_map_drawer.update_text(player_id)
+                    action_confirmed = True  # <‑‑ mark success
                 else:
                     world_map_drawer.update_game_text(f"💊 The {cure_color} disease has already been cured.")
 
@@ -90,6 +92,7 @@ if not BUILDING_DOCS:
                 world_map_drawer.update_game_text(f"Player {player_id + 1} moved to {destination_card['name']}!")
                 world_map_drawer.update_player_marker(player_id, destination_card["name"])
                 world_map_drawer.update_text(player_id)
+                action_confirmed = True  # <‑‑ mark success
                 if role == "Quarantine Specialist":
                     quarantined_cities.clear()
                     quarantined_cities.append(destination_card["name"])
@@ -122,6 +125,7 @@ if not BUILDING_DOCS:
 
                     def confirm_destination():
                         global operations_expert_switch
+                        nonlocal action_confirmed
                         destination = city_var.get()
                         data_unloader.cities[current_city]["player_amount"] -= 1
                         data_unloader.cities[destination_card["name"]]["player_amount"] += 1
@@ -129,6 +133,7 @@ if not BUILDING_DOCS:
                         world_map_drawer.update_game_text(f"Player {player_id + 1} moved to {destination}!")
                         world_map_drawer.update_player_marker(player_id, destination)
                         world_map_drawer.update_text(player_id)
+                        action_confirmed = True  # <‑‑ mark success
                         dest_popup.destroy()
                         if role == "Operations Expert":
                             operations_expert_switch = False
@@ -157,22 +162,37 @@ if not BUILDING_DOCS:
                                          f"You can only build a research center in your current city: {current_city}.")
                     return
 
-                oe_build_research_center(player_id)
+                success = oe_build_research_center(player_id)
+                if success:
+                    action_confirmed = True  # let the discarding section run
+                else:
+                    action_confirmed = False  # nothing happened → don’t discard
 
             elif purpose == "card_overflow":
                 # No validation needed; player is just discarding any cards to reduce hand to 7
-                pass
+                # Ensure the correct number of cards are discarded
+                if len(selected_cards) != amount_to_discard:
+                    messagebox.showerror("Invalid Selection", f"You must select exactly {amount_to_discard} card(s).")
+                    return
+                world_map_drawer.update_text(player_id)
+                # No special validation otherwise, just proceed with discard
+                action_confirmed = True
 
             # ===================== Apply Discard =====================
-            for card in selected_cards:
-                player_hand.remove(card)
-                data_unloader.playercard_discard.append(card)
+            if action_confirmed:
+                for card in selected_cards:
+                    player_hand.remove(card)
+                    data_unloader.playercard_discard.append(card)
 
-            # Update the player's hand in the global data structure
-            data_unloader.players_hands[player_id] = player_hand
+                # Update the player's hand in the global data structure
+                data_unloader.players_hands[player_id] = player_hand
+                world_map_drawer.update_text(player_id)
 
-            # Close the discard popup
-            popup.destroy()
+                # Only close the popup if discard succeeded
+                popup.destroy()
+            else:
+                # If nothing valid was selected (e.g., for overflow), keep the popup open
+                messagebox.showwarning("Discard Required", "You must discard the required number of cards to proceed.")
 
         # ===================== Create Discard Popup =====================
         popup = tk.Toplevel()
@@ -180,6 +200,11 @@ if not BUILDING_DOCS:
         popup.geometry("800x400")
         popup.resizable(False, False)
 
+        # 🛡️ Prevent closing with X
+        if purpose == "card_overflow":
+            def on_close_blocked():
+                messagebox.showwarning("Action Required", "You must discard cards before continuing.")
+            popup.protocol("WM_DELETE_WINDOW", on_close_blocked)
         # Instruction label
         tk.Label(popup, text=f"Select {amount_to_discard} card(s) to discard:").pack(pady=10)
 
@@ -199,22 +224,27 @@ if not BUILDING_DOCS:
 
 
 def check_game_over():  # checks if one of the game over requirements is met: 3 losing and 1 winning situation
+    from pandemic import turn_handler
     global game_over
     if len(data_unloader.player_deck) < 2:  # We lose if the player deck runs out of cards
         game_over = True
         world_map_drawer.update_game_text("Game Over! Ran out of player cards!")
+        turn_handler.end_game(game_over)
         return True
     elif data_unloader.outbreak_marker == 8:  # We lose if 8 or more outbreaks occur
         game_over = True
         world_map_drawer.update_game_text("Game Over! Too many outbreaks occurred!")
+        turn_handler.end_game(game_over)
         return True
     elif any(cube < 0 for cube in data_unloader.infection_cubes):  # We lose if we can't place infection cubes
         game_over = True
         world_map_drawer.update_game_text("Game Over! Ran out of infection cubes!")
+        turn_handler.end_game(game_over)
         return True
     elif all(status > 0 for status in data_unloader.infection_status):  # We win if all diseases are cured
         game_over = True
-        world_map_drawer.update_game_text("You've successfully cured all diseases!")
+        world_map_drawer.update_game_text("You've successfully cured all diseases! You win!")
+        turn_handler.end_game(game_over)
         return True
     return False
 
@@ -400,13 +430,14 @@ def shuttle_flight(player_id) -> None:
         popup.grab_set()
         popup.wait_window()
 
-def oe_build_research_center(player_id) -> None:
+def oe_build_research_center(player_id) -> bool:
     """Performs the Build Research Center action without discarding for O.E. for the first time."""
     global operations_expert_switch
+    action_done = {"ok": False}  # ← mutable flag we’ll update inside callbacks
     current_city = data_unloader.players_locations[player_id]
     if data_unloader.cities[current_city]["research_center"] == 1:
         messagebox.showinfo("Already Present", f"There is already a research center in {current_city}.")
-        return
+        return False
 
     # Count total research centers
     total_research_centers = sum(
@@ -438,6 +469,7 @@ def oe_build_research_center(player_id) -> None:
                 world_map_drawer.update_game_text(
                     f"Moved research center from {chosen_city} to {current_city}.")
                 world_map_drawer.update_research_centers()
+                action_done["ok"] = True
                 select_popup.destroy()
 
             tk.Button(select_popup, text="Confirm", command=confirm_removal).pack(pady=10)
@@ -453,6 +485,8 @@ def oe_build_research_center(player_id) -> None:
         world_map_drawer.update_game_text(
             f"Player {player_id + 1} built research center in {current_city}!")
         world_map_drawer.update_research_centers()
+        action_done["ok"] = True
+    return action_done["ok"]  # tell the caller whether the build really happened
 
 def government_grant_popup(player_id) -> None:
     """Event card: Add a research center to any city (no city card needed)."""
@@ -654,7 +688,13 @@ def share_knowledge(player_id) -> None:
                 )
                 popup.destroy()
                 if len(data_unloader.players_hands[receiver_id]) > 7:
+                    data_unloader.current_hand = data_unloader.players_hands[receiver_id]
                     discard(receiver_id, len(data_unloader.players_hands[receiver_id]) - 7, "card_overflow")
+                    data_unloader.current_hand = data_unloader.players_hands[player_id]
+                elif len(data_unloader.players_hands[giver_id]) > 7:
+                    data_unloader.current_hand = data_unloader.players_hands[giver_id]
+                    discard(giver_id, len(data_unloader.players_hands[giver_id]) - 7, "card_overflow")
+                    data_unloader.current_hand = data_unloader.players_hands[player_id]
 
             tk.Button(popup, text="Confirm", command=confirm_give).pack(pady=10)
             popup.grab_set()
@@ -692,7 +732,13 @@ def share_knowledge(player_id) -> None:
             )
             popup.destroy()
             if len(data_unloader.players_hands[receiver_id]) > 7:
+                data_unloader.current_hand = data_unloader.players_hands[receiver_id]
                 discard(receiver_id, len(data_unloader.players_hands[receiver_id]) - 7, "card_overflow")
+                data_unloader.current_hand = data_unloader.players_hands[player_id]
+            elif len(data_unloader.players_hands[giver_id]) > 7:
+                data_unloader.current_hand = data_unloader.players_hands[giver_id]
+                discard(giver_id, len(data_unloader.players_hands[giver_id]) - 7, "card_overflow")
+                data_unloader.current_hand = data_unloader.players_hands[player_id]
 
         tk.Button(popup, text="Confirm", command=confirm_take).pack(pady=10)
         popup.grab_set()
@@ -748,9 +794,15 @@ def share_knowledge(player_id) -> None:
                 card_popup.destroy()
                 popup.destroy()
 
-                if len(data_unloader.players_hands[target_id]) > 7:
-                    discard(target_id, len(data_unloader.players_hands[target_id]) - 7, "card_overflow")
-
+            if len(data_unloader.players_hands[target_id]) > 7:
+                data_unloader.current_hand = data_unloader.players_hands[target_id]
+                discard(target_id, len(data_unloader.players_hands[target_id]) - 7, "card_overflow")
+                data_unloader.current_hand = data_unloader.players_hands[player_id]
+            elif len(data_unloader.players_hands[giver_id]) > 7:
+                data_unloader.current_hand = data_unloader.players_hands[giver_id]
+                discard(giver_id, len(data_unloader.players_hands[giver_id]) - 7, "card_overflow")
+                data_unloader.current_hand = data_unloader.players_hands[player_id]
+                    
             tk.Button(card_popup, text="Confirm", command=confirm_transfer).pack(pady=10)
             card_popup.grab_set()
 
@@ -774,60 +826,59 @@ def discover_cure(player_id) -> None:
             discard(player_id, 5, "discover_cure")
 
 def play_event_card(player_id) -> None:
-    if world_map_drawer.can_perform_action():
-        """Perform the Play Event Card action."""
-        print("Playing an event card!")
-        hand = data_unloader.players_hands[player_id]
+    """Perform the Play Event Card action."""
+    print("Playing an event card!")
+    hand = data_unloader.players_hands[player_id]
 
-        # Find playable event cards in hand
-        event_cards = [card for card in hand if card.get("cardtype") == "event_card" or "effect" in card]
+    # Find playable event cards in hand
+    event_cards = [card for card in hand if card.get("cardtype") == "event_card" or "effect" in card]
 
-        if not event_cards:
-            world_map_drawer.update_game_text("No event cards to play.")
-            return
+    if not event_cards:
+        world_map_drawer.update_game_text("No event cards to play.")
+        return
 
-        # Popup for selecting an event card
-        popup = tk.Toplevel(world_map_drawer.root)
-        popup.title("Play Event Card")
-        popup.geometry("400x300")
+    # Popup for selecting an event card
+    popup = tk.Toplevel(world_map_drawer.root)
+    popup.title("Play Event Card")
+    popup.geometry("400x300")
 
-        tk.Label(popup, text="Select an event card to play:").pack(pady=10)
+    tk.Label(popup, text="Select an event card to play:").pack(pady=10)
 
-        def play(card):
-            global mobile_hospital_active, improved_sanitation_active, infectionless_night
-            # Remove from hand and add to discard pile
-            hand.remove(card)
-            data_unloader.playercard_discard.append(card)
+    def play(card):
+        global mobile_hospital_active, improved_sanitation_active, infectionless_night
+        # Remove from hand and add to discard pile
+        hand.remove(card)
+        data_unloader.playercard_discard.append(card)
 
-            # Placeholder: apply the effect (custom logic to be added per card)
-            name = card["name"]  # EZT ITT CSINÁLD MEG BAZZE!
-            if name == "Borrowed Time":
-                data_unloader.actions += 2
-                world_map_drawer.update_text(player_id)
-            elif name == "Remote Treatment":
-                remote_treatment_popup(player_id)
-                world_map_drawer.update_text(player_id)
-            elif name == "Mobile Hospital":
-                mobile_hospital_active = True
-            elif name == "Government Grant":
-                government_grant_popup(player_id)
-            elif name == "Infection Zone Ban":
-                card["active"] = True
-                card["timer"] = 0
-            elif name == "Improved Sanitation":
-                card["active"] = True
-                card["timer"] = 0
-                improved_sanitation_active = True
-            elif name == "One Quiet Night":
-                infectionless_night = True
-            world_map_drawer.update_game_text(f"Player {player_id + 1} played {name}")
-            popup.destroy()
+        # Placeholder: apply the effect (custom logic to be added per card)
+        name = card["name"]  # EZT ITT CSINÁLD MEG BAZZE!
+        if name == "Borrowed Time":
+            data_unloader.actions += 2
+            world_map_drawer.update_text(player_id)
+        elif name == "Remote Treatment":
+            remote_treatment_popup(player_id)
+            world_map_drawer.update_text(player_id)
+        elif name == "Mobile Hospital":
+            mobile_hospital_active = True
+        elif name == "Government Grant":
+            government_grant_popup(player_id)
+        elif name == "Infection Zone Ban":
+            card["active"] = True
+            card["timer"] = 0
+        elif name == "Improved Sanitation":
+            card["active"] = True
+            card["timer"] = 0
+            improved_sanitation_active = True
+        elif name == "One Quiet Night":
+            infectionless_night = True
+        world_map_drawer.update_game_text(f"Player {player_id + 1} played {name}")
+        popup.destroy()
 
-        for card in event_cards:
-            btn_text = f"{card['name']}: {card.get('effect', '')}"
-            tk.Button(popup, text=btn_text, wraplength=350, command=lambda c=card: play(c)).pack(pady=5)
+    for card in event_cards:
+        btn_text = f"{card['name']}: {card.get('effect', '')}"
+        tk.Button(popup, text=btn_text, wraplength=350, command=lambda c=card: play(c)).pack(pady=5)
 
-        popup.grab_set()
+    popup.grab_set()
 
 def remote_treatment_popup(player_id):
     max_treats = 2
