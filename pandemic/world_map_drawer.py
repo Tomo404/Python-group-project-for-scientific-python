@@ -325,9 +325,9 @@ def update_outbreak_marker():
             canvas.delete(outbreak_marker_id)
 
         # Determine the new position
-        if data_unloader.outbreak_marker % 2 == 1:
+        if data_unloader.outbreak_marker % 2 == 1 and data_unloader.outbreak_marker <= 8:
             x, y = (201 * scale_factor) + x_offset, ((548 + data_unloader.outbreak_marker * 36.5) * scale_factor) + y_offset
-        elif data_unloader.outbreak_marker % 2 == 0 and data_unloader.outbreak_marker > 0:
+        elif data_unloader.outbreak_marker % 2 == 0 and 0 < data_unloader.outbreak_marker <= 8:
             x, y = (157 * scale_factor) + x_offset, ((587 + (data_unloader.outbreak_marker - 1) * 35.5) * scale_factor) + y_offset
         else:
             x, y = (157 * scale_factor) + x_offset, (547 * scale_factor) + y_offset
@@ -374,8 +374,6 @@ portrait_position = ((101 * scale_factor) + x_offset, (1063 * scale_factor) + y_
 current_portrait = None
 current_playerid = None
 current_playerturn = None
-
-import os
 
 def load_role_images():
     if not BUILDING_DOCS:
@@ -538,14 +536,3 @@ def start_gui(player_id, player_role):
     rotate_player_hand(player_id)
     from pandemic import turn_handler  # ← avoid circular import early
     root.after(1000, turn_handler.next_turn)
-
-# def change_player_role():
-#     """Sets starting player operation expert for testing"""
-#
-#     roles = data_unloader.in_game_roles
-#     roles[1] = "Operations Expert" #change this if you wanna test other roles
-#     print(f"Player roles are set to: {data_unloader.in_game_roles}")
-#
-#     update_game_text(player_id)
-#
-# change_player_role()
