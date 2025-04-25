@@ -187,7 +187,6 @@ def update_text(current_player_id):
     if not BUILDING_DOCS:
         """Updates the text elements dynamically based on the current player."""
         i = data_unloader.infection_rate_marker  # Get updated infection rate index
-
         canvas.itemconfig(text_elements["infection_rate"], text=f"{data_unloader.infection_rate_marker_amount[i]}")
         canvas.itemconfig(text_elements["research_centers"], text=f" x {data_unloader.research_centers}")
         canvas.itemconfig(text_elements["infection_yellow"], text=f" x {data_unloader.infection_cubes[0]}")
