@@ -18,7 +18,10 @@ player_draw_locked = False
 playercards_drawn = 0
 infectioncards_drawn = 0
 operations_expert_switch = True
-quarantined_cities = ["Atlanta", "Washington", "Miami", "Chicago"]
+if "Quarantine Specialist" in data_unloader.in_game_roles:
+    quarantined_cities = ["Atlanta", "Washington", "Miami", "Chicago"]
+else:
+    quarantined_cities = []
 mobile_hospital_active = False
 improved_sanitation_active = False
 infectionless_night = False
