@@ -60,7 +60,7 @@ def can_perform_action():
         return True
     else:
         import functions
-        print("No remaining actions!")
+        update_game_text("No remaining actions!")
         functions.skip_turn(player_id)  # Ends turn if actions are exhausted
         return False
 
