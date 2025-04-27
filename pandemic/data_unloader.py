@@ -113,8 +113,8 @@ def set_game_settings():
     else:
         epidemic_cards = 4 # Set a default value for documentation
         players = 2 # Set a default value for documentation
-        wwidth = 1550
-        wheight = 800
+        wwidth = 1000
+        wheight = 600
 
     print(f"✅ Game settings: {players} players, {epidemic_cards} epidemic cards.")
 
@@ -123,7 +123,6 @@ set_game_settings()
 
 def draw_initial_infections():
     global infection_deck, infection_discard, infection_cubes, cities
-    print("\n🔴 Initial Infection Phase Begins!")
 
     # Draw 9 cards and apply infection cube placement
     for i in range(9):
@@ -144,17 +143,7 @@ def draw_initial_infections():
             new_infection = min(current_infection + cubes_to_add, 3)  # Max infection is 3
             cities[city_name]["infection_levels"][color_index] = new_infection
 
-        #print(f"🦠 {city_name} gets {cubes_to_add} {city_color} cube(s).")
-
-    print("\n✅ Infection phase complete! Cities are infected, and roles can now be assigned.")
-
 draw_initial_infections()
-
-"""for infection in infections:
-    print(f"{infection['name']}: {infection['color']}")
-
-for discarded in infection_discard:
-    print(f"discarded: {discarded['name']}: {discarded['color']}")"""
 
 epidemic_card = {
     "name": "Epidemic",
@@ -249,24 +238,5 @@ finalize_player_deck()  # Add epidemic cards and shuffle
 
 players_locations = {i: "Atlanta" for i in range(players)}
 
-print(f"✅ Player deck ready with {len(player_deck)} cards, including {epidemic_cards} epidemic cards.")
-
 if "Atlanta" in cities:
     cities["Atlanta"]["player_amount"] = players
-
-"""def print_city_data():
-    #Prints the current infection levels, research centers, and player count for each city.
-    print("\n📍 Current City Data:")
-    for city_name, city_data in cities.items():
-        print(f"🏙️ City: {city_name}")
-        print(f"   🦠 Infection Levels: {city_data['infection_levels']}")
-        print(f"   🏥 Research Center: {'Yes' if city_data['research_center'] else 'No'}")
-        print(f"   👥 Players Present: {city_data['player_amount']}")
-        print("-" * 50)  # Separator for readability
-
-# Example Usage (Call this to display all city data)
-print_city_data()
-
-# Example: Print all cards in the deck
-for card in player_deck:
-    print(f"{card['name']}")"""
