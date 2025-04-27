@@ -278,22 +278,22 @@ def check_game_over():  # checks if one of the game over requirements is met: 3 
     global game_over
     if len(data_unloader.player_deck) < 2:  # We lose if the player deck runs out of cards
         game_over = True
-        world_map_drawer.update_game_text("Game Over! Ran out of player cards!")
+        world_map_drawer.update_game_text("❌ Game Over! Ran out of player cards!")
         turn_handler.end_game(game_over)
         return True
     elif data_unloader.outbreak_marker == 8:  # We lose if 8 or more outbreaks occur
         game_over = True
-        world_map_drawer.update_game_text("Game Over! Too many outbreaks occurred!")
+        world_map_drawer.update_game_text("❌ Game Over! Too many outbreaks occurred!")
         turn_handler.end_game(game_over)
         return True
     elif any(cube < 0 for cube in data_unloader.infection_cubes):  # We lose if we can't place infection cubes
         game_over = True
-        world_map_drawer.update_game_text("Game Over! Ran out of infection cubes!")
+        world_map_drawer.update_game_text("❌ Game Over! Ran out of infection cubes!")
         turn_handler.end_game(game_over)
         return True
     elif all(status > 0 for status in data_unloader.infection_status):  # We win if all diseases are cured
         game_over = True
-        world_map_drawer.update_game_text("You've successfully cured all diseases! You win!")
+        world_map_drawer.update_game_text("✅ You've successfully cured all diseases! You win!")
         turn_handler.end_game(game_over)
         return True
     return False
@@ -335,7 +335,6 @@ def drive_ferry(player_id) -> None:
     """Perform the Drive/Ferry action."""
     if world_map_drawer.can_perform_action():
         global quarantined_cities, mobile_hospital_active, medic_protected_city
-        print("Drive/Ferry action triggered!")
         role = data_unloader.in_game_roles[player_id]
         current_city = data_unloader.players_locations[player_id]
         neighbors = data_unloader.cities[current_city]["relations"]
@@ -428,19 +427,16 @@ def drive_ferry(player_id) -> None:
 def direct_flight(player_id) -> None:
     """Perform the Direct Flight action."""
     if world_map_drawer.can_perform_action():
-        print("Direct Flight action triggered!")
         discard(player_id, 1, "direct_flight")
 
 def charter_flight(player_id) -> None:
     """Perform the Charter Flight action."""
     if world_map_drawer.can_perform_action():
-        print("Charter Flight action triggered!")
         discard(player_id, 1, "charter_flight")
 
 def shuttle_flight(player_id) -> None:
     """Perform the Shuttle Flight action."""
     if world_map_drawer.can_perform_action():
-        print("Shuttle Flight action triggered!")
         current_city = data_unloader.players_locations[player_id]
         role = data_unloader.in_game_roles[player_id]
 
@@ -626,7 +622,6 @@ def government_grant_popup(player_id, on_confirm_callback):
 def build_research_center(player_id) -> None:
     """Perform the action of building a research center."""
     if world_map_drawer.can_perform_action():
-        print("Building a Research Center!")
         role = data_unloader.in_game_roles[player_id]
         if role == "Operations Expert" and operations_expert_switch:
             oe_build_research_center(player_id)
@@ -636,7 +631,6 @@ def build_research_center(player_id) -> None:
 def treat_disease(player_id) -> None:
     """Perform the Treat Disease action."""
     if world_map_drawer.can_perform_action():
-        print("Treating Disease!")
         current_city = data_unloader.players_locations[player_id]
         infection_levels = data_unloader.cities[current_city]["infection_levels"]
         role = data_unloader.in_game_roles[player_id]
@@ -718,7 +712,6 @@ def treat_disease(player_id) -> None:
 def share_knowledge(player_id) -> None:
     """Perform the Share Knowledge action (original and modified rule options)."""
     if world_map_drawer.can_perform_action():
-        print("Sharing Knowledge!")
         current_city = data_unloader.players_locations[player_id]
 
         # Find other players in the same city
@@ -896,7 +889,6 @@ def share_knowledge(player_id) -> None:
 def discover_cure(player_id) -> None:
     """Perform the Discover Cure action."""
     if world_map_drawer.can_perform_action():
-        print("Discovering Cure!")
         current_city = data_unloader.players_locations[player_id]
         if data_unloader.cities[current_city]["research_center"] != 1:
             world_map_drawer.update_game_text(
@@ -910,7 +902,6 @@ def discover_cure(player_id) -> None:
 
 def play_event_card(player_id) -> None:
     """Playing an event card action."""
-    print("Playing an Event Card!")
     hand = data_unloader.players_hands[player_id]
 
     event_cards = [card for card in hand if card.get("cardtype") == "event_card" or "effect" in card]
@@ -1070,7 +1061,7 @@ def skip_turn(player_id) -> None:
     """Skip the current player's turn."""
     if data_unloader.actions != 0:
         data_unloader.actions = 0
-        world_map_drawer.update_game_text(f"{player_id}'s Turn skipped!")
+        world_map_drawer.update_game_text(f"Player {player_id + 1} skipped turn!")
     world_map_drawer.update_text(player_id)
 
 def drawing_phase(player_id) -> None:
@@ -1143,12 +1134,13 @@ def draw_player_card(player_id) -> None:
         world_map_drawer.update_game_text("⛔ Player draw is currently locked.")
         return
     check_game_over()
-    if playercards_drawn < remaining_player_cards:
+    if playercards_drawn < remaining_player_cards and data_unloader.actions == 0 and infectioncards_drawn == 0:
         drawing_phase(player_id)
         playercards_drawn += 1
-        print("Drawing Player Card!")
+    else:
+        world_map_drawer.update_game_text("It's not the drawing phase yet!")
     if playercards_drawn == remaining_player_cards:
-        print("End of Drawing Phase!")
+        world_map_drawer.update_game_text("End of Drawing Phase!")
         player_draw_locked = True
 
 def draw_infection_card(player_id) -> None:
@@ -1157,12 +1149,13 @@ def draw_infection_card(player_id) -> None:
     if infectionless_night:
         remaining_infection_cards = 1
         infectionless_night = False
-    if infectioncards_drawn < remaining_infection_cards:
+    if infectioncards_drawn < remaining_infection_cards and data_unloader.actions == 0 and player_draw_locked:
         infection_phase(player_id)
         infectioncards_drawn += 1
-        print("Drawing Infection Card!")
+    else:
+        world_map_drawer.update_game_text("It's not the infection phase yet!")
     if infectioncards_drawn == remaining_infection_cards:
-        print("End of Turn!")
+        world_map_drawer.update_game_text("End of Turn!")
         transition_to_next_phase(player_id)
 
 # Call this function before transitioning to a new phase
