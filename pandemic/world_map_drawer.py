@@ -57,6 +57,7 @@ def create_window():
     canvas.create_image(x_offset, y_offset, anchor=tk.NW, image=map_image)
 
 def can_perform_action():
+    """Checks if there is enough action points to use an action. If not, turn is skipped."""
     if data_unloader.actions > 0:
         return True
     else:
