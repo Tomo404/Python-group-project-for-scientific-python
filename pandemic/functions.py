@@ -84,8 +84,8 @@ if not BUILDING_DOCS:
                 if data_unloader.infection_status[disease_index] == 0:
                     data_unloader.infection_status[disease_index] = 1
                     data_unloader.actions -= 1
-                    world_map_drawer.update_game_text(
-                        f"💊 Player {player_id + 1} discovered a cure for the {cure_color} disease!")
+                    world_map_drawer.queue_game_text(
+                        f"💊 Player {player_id + 1} discovered a cure for the {cure_color} disease!", delay = 1500)
                     # Check if the Medic is present and auto-remove cubes from his current city
                     if "Medic" in data_unloader.in_game_roles:
                         medic_id = data_unloader.in_game_roles.index("Medic")  # Much simpler!
@@ -96,8 +96,8 @@ if not BUILDING_DOCS:
                             cubes_removed = infection_levels[disease_index]
                             infection_levels[disease_index] = 0
                             data_unloader.infection_cubes[disease_index] += cubes_removed
-                            world_map_drawer.update_game_text(
-                                f"🧪 Medic removed all {cure_color} cubes from {medic_city} after curing the disease!"
+                            world_map_drawer.queue_game_text(
+                                f"🧪 Medic removed all {cure_color} cubes from {medic_city} after curing the disease!", delay = 1500
                             )
                             world_map_drawer.update_text(medic_id)
 
@@ -106,7 +106,7 @@ if not BUILDING_DOCS:
                     check_game_over()
                     action_confirmed = True  # <‑‑ mark success
                 else:
-                    world_map_drawer.update_game_text(f"💊 The {cure_color} disease has already been cured.")
+                    world_map_drawer.queue_game_text(f"💊 The {cure_color} disease has already been cured.", delay = 1500)
 
             elif purpose == "direct_flight":
                 # You must discard the card of the city you are flying to
@@ -118,7 +118,7 @@ if not BUILDING_DOCS:
                 data_unloader.cities[current_city]["player_amount"] -= 1
                 data_unloader.cities[destination_card["name"]]["player_amount"] += 1
                 data_unloader.actions -= 1
-                world_map_drawer.update_game_text(f"🛩️ Player {player_id + 1} moved to {destination_card['name']}!")
+                world_map_drawer.queue_game_text(f"🛩️ Player {player_id + 1} moved to {destination_card['name']}!", delay = 1500)
                 world_map_drawer.update_player_marker(player_id, destination_card["name"])
                 world_map_drawer.update_text(player_id)
                 action_confirmed = True  # <‑‑ mark success
@@ -134,8 +134,8 @@ if not BUILDING_DOCS:
                         if cubes > 0 and data_unloader.infection_status[i] >= 1:  # if cured
                             data_unloader.infection_cubes[i] += cubes
                             infection_levels[i] = 0
-                            world_map_drawer.update_game_text(
-                                f"🧪 Medic removed all {['yellow', 'red', 'blue', 'black'][i]} infection cubes in {destination_card["name"]} by direct flight!"
+                            world_map_drawer.queue_game_text(
+                                f"🧪 Medic removed all {['yellow', 'red', 'blue', 'black'][i]} infection cubes in {destination_card["name"]} by direct flight!", delay = 1500
                             )
                     world_map_drawer.update_text(player_id)
             elif purpose == "charter_flight":
@@ -169,7 +169,7 @@ if not BUILDING_DOCS:
                         data_unloader.cities[current_city]["player_amount"] -= 1
                         data_unloader.cities[destination_card["name"]]["player_amount"] += 1
                         data_unloader.actions -= 1
-                        world_map_drawer.update_game_text(f"🛩️ Player {player_id + 1} moved to {destination}!")
+                        world_map_drawer.queue_game_text(f"🛩️ Player {player_id + 1} moved to {destination}!", delay = 1500)
                         world_map_drawer.update_player_marker(player_id, destination)
                         world_map_drawer.update_text(player_id)
                         action_confirmed = True  # <‑‑ mark success
@@ -188,8 +188,8 @@ if not BUILDING_DOCS:
                                 if cubes > 0 and data_unloader.infection_status[i] >= 1:  # if cured
                                     data_unloader.infection_cubes[i] += cubes
                                     infection_levels[i] = 0
-                                    world_map_drawer.update_game_text(
-                                        f"🧪 Medic removed all {['yellow', 'red', 'blue', 'black'][i]} infection cubes in {destination} by charter flight!"
+                                    world_map_drawer.queue_game_text(
+                                        f"🧪 Medic removed all {['yellow', 'red', 'blue', 'black'][i]} infection cubes in {destination} by charter flight!", delay = 1500
                                     )
                             world_map_drawer.update_text(player_id)
 
@@ -278,22 +278,22 @@ def check_game_over():  # checks if one of the game over requirements is met: 3 
     global game_over
     if len(data_unloader.player_deck) < 2:  # We lose if the player deck runs out of cards
         game_over = True
-        world_map_drawer.update_game_text("❌ Game Over! Ran out of player cards!")
+        world_map_drawer.queue_game_text("❌ Game Over! Ran out of player cards!", delay = 1500)
         turn_handler.end_game(game_over)
         return True
     elif data_unloader.outbreak_marker == 8:  # We lose if 8 or more outbreaks occur
         game_over = True
-        world_map_drawer.update_game_text("❌ Game Over! Too many outbreaks occurred!")
+        world_map_drawer.queue_game_text("❌ Game Over! Too many outbreaks occurred!", delay = 1500)
         turn_handler.end_game(game_over)
         return True
     elif any(cube < 0 for cube in data_unloader.infection_cubes):  # We lose if we can't place infection cubes
         game_over = True
-        world_map_drawer.update_game_text("❌ Game Over! Ran out of infection cubes!")
+        world_map_drawer.queue_game_text("❌ Game Over! Ran out of infection cubes!", delay = 1500)
         turn_handler.end_game(game_over)
         return True
     elif all(status > 0 for status in data_unloader.infection_status):  # We win if all diseases are cured
         game_over = True
-        world_map_drawer.update_game_text("✅ You've successfully cured all diseases! You win!")
+        world_map_drawer.queue_game_text("✅ You've successfully cured all diseases! You win!", delay = 1500)
         turn_handler.end_game(game_over)
         return True
     return False
@@ -320,7 +320,7 @@ def reset_card_draws(player_id):
             if card["timer"] >= len(data_unloader.in_game_roles):
                 card["active"] = False
                 card["timer"] = 0
-                world_map_drawer.update_game_text("🧼 Infection Zone Ban effect has ended.")
+                world_map_drawer.queue_game_text("🧼 Infection Zone Ban effect has ended.", delay = 1500)
         elif card.get("name") == "Improved Sanitation" and card.get("active"):
             # If active, increment its internal timer
             card["timer"] = card.get("timer", 0) + 1
@@ -329,7 +329,7 @@ def reset_card_draws(player_id):
                 card["active"] = False
                 card["timer"] = 0
                 improved_sanitation_active = False
-                world_map_drawer.update_game_text("🧼 Improved Sanitation effect has ended.")
+                world_map_drawer.queue_game_text("🧼 Improved Sanitation effect has ended.", delay = 1500)
 
 def drive_ferry(player_id) -> None:
     """Perform the Drive/Ferry action."""
@@ -351,7 +351,7 @@ def drive_ferry(player_id) -> None:
             data_unloader.cities[current_city]["player_amount"] -= 1
             data_unloader.cities[destination]["player_amount"] += 1
             data_unloader.actions -= 1
-            world_map_drawer.update_game_text(f"🛻 Player {player_id + 1} moved to {destination}!")
+            world_map_drawer.queue_game_text(f"🛻 Player {player_id + 1} moved to {destination}!", delay = 1500)
             world_map_drawer.update_player_marker(player_id, destination)
             world_map_drawer.update_text(player_id)
             popup.destroy()
@@ -367,8 +367,8 @@ def drive_ferry(player_id) -> None:
                     if cubes > 0 and data_unloader.infection_status[i] >= 1:  # if cured
                         data_unloader.infection_cubes[i] += cubes
                         infection_levels[i] = 0
-                        world_map_drawer.update_game_text(
-                            f"🧪 Medic removed all {['yellow', 'red', 'blue', 'black'][i]} cubes in {destination} by drive/ferry!"
+                        world_map_drawer.queue_game_text(
+                            f"🧪 Medic removed all {['yellow', 'red', 'blue', 'black'][i]} cubes in {destination} by drive/ferry!", delay = 1500
                         )
                 world_map_drawer.update_text(player_id)
             elif mobile_hospital_active:
@@ -376,7 +376,7 @@ def drive_ferry(player_id) -> None:
                     present_diseases = [(i, level) for i, level in enumerate(infection_levels) if level > 0]
 
                     if not present_diseases:
-                        world_map_drawer.update_game_text(f"No disease cubes to remove in {destination}.")
+                        world_map_drawer.queue_game_text(f"No disease cubes to remove in {destination}.", delay = 1500)
                         return
 
                     if len(present_diseases) == 1:
@@ -384,8 +384,8 @@ def drive_ferry(player_id) -> None:
                         disease_index = present_diseases[0][0]
                         data_unloader.cities[destination]["infection_levels"][disease_index] -= 1
                         data_unloader.infection_cubes[disease_index] += 1
-                        world_map_drawer.update_game_text(
-                            f"🛻 Mobile Hospital: Removed 1 {['yellow', 'red', 'blue', 'black'][disease_index]} cube from {destination}."
+                        world_map_drawer.queue_game_text(
+                            f"🛻 Mobile Hospital: Removed 1 {['yellow', 'red', 'blue', 'black'][disease_index]} cube from {destination}.", delay = 1500
                         )
                         world_map_drawer.update_text(player_id)
                         return
@@ -394,8 +394,8 @@ def drive_ferry(player_id) -> None:
                     def remove_and_close(index):
                         data_unloader.cities[destination]["infection_levels"][index] -= 1
                         data_unloader.infection_cubes[index] += 1
-                        world_map_drawer.update_game_text(
-                            f"🛻 Mobile Hospital: Removed 1 {['yellow', 'red', 'blue', 'black'][index]} cube from {destination}."
+                        world_map_drawer.queue_game_text(
+                            f"🛻 Mobile Hospital: Removed 1 {['yellow', 'red', 'blue', 'black'][index]} cube from {destination}.", delay = 1500
                         )
                         world_map_drawer.update_text(player_id)
                         hospital_popup.destroy()
@@ -442,7 +442,7 @@ def shuttle_flight(player_id) -> None:
 
         # 1. Check if current city has a research center
         if not data_unloader.cities[current_city]["research_center"]:
-            world_map_drawer.update_game_text(f"⚠️ {current_city} does not have a research center.")
+            world_map_drawer.queue_game_text(f"⚠️ {current_city} does not have a research center.", delay = 1500)
             return
 
         # 2. Find other cities with research centers
@@ -450,7 +450,7 @@ def shuttle_flight(player_id) -> None:
                         if data["research_center"] and city != current_city]
 
         if not destinations:
-            world_map_drawer.update_game_text("⚠️ No other research centers to shuttle to.")
+            world_map_drawer.queue_game_text("⚠️ No other research centers to shuttle to.", delay = 1500)
             return
 
         # 3. Popup for destination selection
@@ -470,7 +470,7 @@ def shuttle_flight(player_id) -> None:
             data_unloader.cities[destination]["player_amount"] += 1
             data_unloader.players_locations[player_id] = destination
             data_unloader.actions -= 1
-            world_map_drawer.update_game_text(f"🛩️ Player {player_id + 1} shuttled to {destination}.")
+            world_map_drawer.queue_game_text(f"🛩️ Player {player_id + 1} shuttled to {destination}.", delay = 1500)
             world_map_drawer.update_player_marker(player_id, destination)
             world_map_drawer.update_text(player_id)
             popup.destroy()
@@ -486,8 +486,8 @@ def shuttle_flight(player_id) -> None:
                 if cubes > 0 and data_unloader.infection_status[i] >= 1:  # if cured
                     data_unloader.infection_cubes[i] += cubes
                     infection_levels[i] = 0
-                    world_map_drawer.update_game_text(
-                        f"🧪 Medic removed all {['yellow', 'red', 'blue', 'black'][i]} infection cubes in {destination} by shuttle flight!"
+                    world_map_drawer.queue_game_text(
+                        f"🧪 Medic removed all {['yellow', 'red', 'blue', 'black'][i]} infection cubes in {destination} by shuttle flight!", delay = 1500
                     )
             world_map_drawer.update_text(player_id)
 
@@ -531,8 +531,8 @@ def oe_build_research_center(player_id) -> bool:
                 data_unloader.cities[current_city]["research_center"] = 1
                 operations_expert_switch = False
                 data_unloader.actions -= 1
-                world_map_drawer.update_game_text(
-                    f"🏛️ Moved research center from {chosen_city} to {current_city}.")
+                world_map_drawer.queue_game_text(
+                    f"🏛️ Moved research center from {chosen_city} to {current_city}.", delay = 1500)
                 world_map_drawer.update_research_centers()
                 action_done["ok"] = True
                 select_popup.destroy()
@@ -547,8 +547,8 @@ def oe_build_research_center(player_id) -> bool:
         data_unloader.cities[current_city]["research_center"] = 1
         data_unloader.actions -= 1
         operations_expert_switch = False
-        world_map_drawer.update_game_text(
-            f"🏛️ Player {player_id + 1} built research center in {current_city}!")
+        world_map_drawer.queue_game_text(
+            f"🏛️ Player {player_id + 1} built research center in {current_city}!", delay = 1500)
         world_map_drawer.update_research_centers()
         action_done["ok"] = True
     return action_done["ok"]  # tell the caller whether the build really happened
@@ -598,7 +598,7 @@ def government_grant_popup(player_id, on_confirm_callback):
                     removed = removal_var.get()
                     data_unloader.cities[removed]["research_center"] = 0
                     data_unloader.cities[selected_city]["research_center"] = 1
-                    world_map_drawer.update_game_text(f"🏛️ Government Grant: Moved RC from {removed} to {selected_city}.")
+                    world_map_drawer.queue_game_text(f"🏛️ Government Grant: Moved RC from {removed} to {selected_city}.", delay = 1500)
                     world_map_drawer.update_research_centers()
                     removal_popup.destroy()
                     popup.destroy()
@@ -611,7 +611,7 @@ def government_grant_popup(player_id, on_confirm_callback):
             choose_removal()
         else:
             data_unloader.cities[selected_city]["research_center"] = 1
-            world_map_drawer.update_game_text(f"🏛️ Government Grant: Built research center in {selected_city}.")
+            world_map_drawer.queue_game_text(f"🏛️ Government Grant: Built research center in {selected_city}.", delay = 1500)
             world_map_drawer.update_research_centers()
             popup.destroy()
             on_confirm_callback()  # ✅ Callback only after confirm
@@ -639,7 +639,7 @@ def treat_disease(player_id) -> None:
         present_diseases = [(i, level) for i, level in enumerate(infection_levels) if level > 0]
 
         if not present_diseases:
-            world_map_drawer.update_game_text(f"No disease to treat in {current_city}.")
+            world_map_drawer.queue_game_text(f"No disease to treat in {current_city}.", delay = 1500)
             return
 
         def perform_treatment(disease_index: int):
@@ -679,7 +679,7 @@ def treat_disease(player_id) -> None:
                 world_map_drawer.update_disease_status(disease_index)
 
             data_unloader.actions -= 1
-            world_map_drawer.update_game_text(message)
+            world_map_drawer.queue_game_text(message, delay = 1500)
             world_map_drawer.update_text(player_id)
 
         if len(present_diseases) == 1:
@@ -721,7 +721,7 @@ def share_knowledge(player_id) -> None:
         ]
 
         if not others_in_city:
-            world_map_drawer.update_game_text("No other player in the city to share knowledge with.")
+            world_map_drawer.queue_game_text("No other player in the city to share knowledge with.", delay = 1500)
             return
 
         # ===================== ORIGINAL RULE VERSION =====================
@@ -755,8 +755,8 @@ def share_knowledge(player_id) -> None:
                 data_unloader.actions -= 1
                 world_map_drawer.update_text(giver_id)
                 world_map_drawer.update_text(receiver_id)
-                world_map_drawer.update_game_text(
-                    f"💬 Player {giver_id + 1} gave '{current_city}' card to Player {receiver_id + 1}."
+                world_map_drawer.queue_game_text(
+                    f"💬 Player {giver_id + 1} gave '{current_city}' card to Player {receiver_id + 1}.", delay = 1500
                 )
                 popup.destroy()
                 if len(data_unloader.players_hands[receiver_id]) > 7:
@@ -784,7 +784,7 @@ def share_knowledge(player_id) -> None:
                 break
 
         if not city_card:
-            world_map_drawer.update_game_text("No one has the city card to share.")
+            world_map_drawer.queue_game_text("No one has the city card to share.", delay = 1500)
             return
 
         popup = tk.Toplevel(world_map_drawer.root)
@@ -799,8 +799,8 @@ def share_knowledge(player_id) -> None:
             data_unloader.players_hands[receiver_id].append(city_card)
             world_map_drawer.update_text(giver_id)
             world_map_drawer.update_text(receiver_id)
-            world_map_drawer.update_game_text(
-                f"💬 Player {giver_id + 1} gave '{current_city}' card to Player {receiver_id + 1}!"
+            world_map_drawer.queue_game_text(
+                f"💬 Player {giver_id + 1} gave '{current_city}' card to Player {receiver_id + 1}!", delay = 1500
             )
             popup.destroy()
             if len(data_unloader.players_hands[receiver_id]) > 7:
@@ -862,8 +862,8 @@ def share_knowledge(player_id) -> None:
                 data_unloader.actions -= 1
                 world_map_drawer.update_text(source_id)
                 world_map_drawer.update_text(target_id)
-                world_map_drawer.update_game_text(
-                    f"💬 Shared card '{chosen_name}' from Player {source_id + 1} to Player {target_id + 1}"
+                world_map_drawer.queue_game_text(
+                    f"💬 Shared card '{chosen_name}' from Player {source_id + 1} to Player {target_id + 1}", delay = 1500
                 )
 
                 # Moved here: check *after* transfer is completed
@@ -891,8 +891,8 @@ def discover_cure(player_id) -> None:
     if world_map_drawer.can_perform_action():
         current_city = data_unloader.players_locations[player_id]
         if data_unloader.cities[current_city]["research_center"] != 1:
-            world_map_drawer.update_game_text(
-                f"{data_unloader.players_locations[player_id]} has no research center!")
+            world_map_drawer.queue_game_text(
+                f"{data_unloader.players_locations[player_id]} has no research center!", delay = 1500)
             return
         role = data_unloader.in_game_roles[player_id]
         if role == "Scientist":
@@ -907,7 +907,7 @@ def play_event_card(player_id) -> None:
     event_cards = [card for card in hand if card.get("cardtype") == "event_card" or "effect" in card]
 
     if not event_cards:
-        world_map_drawer.update_game_text("No event cards to play.")
+        world_map_drawer.queue_game_text("No event cards to play.", delay = 1500)
         return
 
     popup = tk.Toplevel(world_map_drawer.root)
@@ -923,9 +923,9 @@ def play_event_card(player_id) -> None:
                 break
         data_unloader.playercard_discard.append(card)
         if card["name"] != "One Quiet Night":
-            world_map_drawer.update_game_text(f"🎴 Player {player_id + 1} played {card['name']}!")
+            world_map_drawer.queue_game_text(f"🎴 Player {player_id + 1} played {card['name']}!", delay = 1500)
         else:
-            world_map_drawer.update_game_text(f"🎴 Player {player_id + 1} played {card['name']}! Click the infection deck to proceed!")
+            world_map_drawer.queue_game_text(f"🎴 Player {player_id + 1} played {card['name']}! Click the infection deck to proceed!", delay = 1500)
         popup.destroy()
 
     def play(card):
@@ -1044,7 +1044,7 @@ def remote_treatment_popup(player_id, on_confirm_callback) -> None:
         for city, color_index in selected_pairs:
             cities[city]["infection_levels"][color_index] -= 1
             data_unloader.infection_cubes[color_index] += 1
-            world_map_drawer.update_game_text(f"💉 Removed 1 {infection_colors[color_index]} cube from {city}.")
+            world_map_drawer.queue_game_text(f"💉 Removed 1 {infection_colors[color_index]} cube from {city}.", delay = 1500)
 
         world_map_drawer.update_text(player_id)
         on_confirm_callback()
@@ -1061,7 +1061,7 @@ def skip_turn(player_id) -> None:
     """Skip the current player's turn."""
     if data_unloader.actions != 0:
         data_unloader.actions = 0
-        world_map_drawer.update_game_text(f"Player {player_id + 1} skipped turn!")
+        world_map_drawer.queue_game_text(f"Player {player_id + 1} skipped turn!", delay = 1500)
     world_map_drawer.update_text(player_id)
 
 def drawing_phase(player_id) -> None:
@@ -1071,10 +1071,10 @@ def drawing_phase(player_id) -> None:
     """
     hand = data_unloader.current_hand
     card = data_unloader.player_deck.pop(0)
-    world_map_drawer.update_game_text(f"🎴 Player {player_id + 1} drew: {card['name']}")
+    world_map_drawer.queue_game_text(f"🎴 Player {player_id + 1} drew: {card['name']}", delay = 1500)
 
     if card["name"] == "Epidemic":
-        world_map_drawer.update_game_text("🧨 Epidemic card drawn! Increase, Infect, and Intensify")
+        world_map_drawer.queue_game_text("🧨 Epidemic card drawn! Increase, Infect, and Intensify", delay = 1500)
         # ✅ Remove epidemic card from the game by tracking it explicitly
         data_unloader.epidemiccard_discard.append(card)
         handle_epidemic(player_id)
@@ -1106,14 +1106,14 @@ def infection_phase(player_id) -> None:
         city_color = infection_card["color"]
         color_index = ["yellow", "red", "blue", "black"].index(city_color)
 
-        world_map_drawer.update_game_text(f"🦠 Infecting {city_name} with 1 {city_color} cube.")
+        world_map_drawer.queue_game_text(f"🦠 Infecting {city_name} with 1 {city_color} cube.", delay = 1500)
         if city_name in cities and city_name not in quarantined_cities and city_name != medic_protected_city and data_unloader.infection_status[color_index] != 2:
             current_level = cities[city_name]["infection_levels"][color_index]
             cubes_to_add = 1
 
             if current_level + cubes_to_add > 3:
                 # 3 cubes already there — outbreak occurs
-                world_map_drawer.update_game_text(f"💥 Outbreak triggered in {city_name}!")
+                world_map_drawer.queue_game_text(f"💥 Outbreak triggered in {city_name}!", delay = 1500)
                 check_game_over()
                 trigger_outbreak(city_name, color_index)
             else:
@@ -1121,26 +1121,26 @@ def infection_phase(player_id) -> None:
                 check_game_over()
                 cities[city_name]["infection_levels"][color_index] += 1
                 infection_cubes[color_index] -= 1
-                world_map_drawer.update_game_text(f"🦠 1 {city_color} cube added to {city_name}.")
+                world_map_drawer.queue_game_text(f"🦠 1 {city_color} cube added to {city_name}.", delay = 1500)
             world_map_drawer.update_text(player_id)
         else:
-            world_map_drawer.update_game_text(f"🛡️ Infection/Outbreak prevented in {city_name} by Medic/Quarantine Specialist!")
+            world_map_drawer.queue_game_text(f"🛡️ Infection/Outbreak prevented in {city_name} by Medic/Quarantine Specialist!", delay = 1500)
             return
 
 def draw_player_card(player_id) -> None:
     """Draw a player card for the current player."""
     global playercards_drawn, player_draw_locked
     if player_draw_locked:
-        world_map_drawer.update_game_text("⛔ Player draw is currently locked.")
+        world_map_drawer.queue_game_text("⛔ Player draw is currently locked.", delay = 1500)
         return
     check_game_over()
     if playercards_drawn < remaining_player_cards and data_unloader.actions == 0 and infectioncards_drawn == 0:
         drawing_phase(player_id)
         playercards_drawn += 1
     else:
-        world_map_drawer.update_game_text("It's not the drawing phase yet!")
+        world_map_drawer.queue_game_text("It's not the drawing phase yet!", delay = 1500)
     if playercards_drawn == remaining_player_cards:
-        world_map_drawer.update_game_text("End of Drawing Phase!")
+        world_map_drawer.queue_game_text("End of Drawing Phase!", delay = 1500)
         player_draw_locked = True
 
 def draw_infection_card(player_id) -> None:
@@ -1153,9 +1153,9 @@ def draw_infection_card(player_id) -> None:
         infection_phase(player_id)
         infectioncards_drawn += 1
     else:
-        world_map_drawer.update_game_text("It's not the infection phase yet!")
+        world_map_drawer.queue_game_text("It's not the infection phase yet!", delay = 1500)
     if infectioncards_drawn == remaining_infection_cards:
-        world_map_drawer.update_game_text("End of Turn!")
+        world_map_drawer.queue_game_text("End of Turn!", delay = 1500)
         transition_to_next_phase(player_id)
 
 # Call this function before transitioning to a new phase
@@ -1185,7 +1185,7 @@ def handle_epidemic(player_id):
         color_index = ["yellow", "red", "blue", "black"].index(color)
 
         if city not in quarantined_cities and city != medic_protected_city and data_unloader.infection_status[color_index] != 2:
-            world_map_drawer.update_game_text(f"☣️ Epidemic in {city}! Adding 3 {color} cubes.")
+            world_map_drawer.queue_game_text(f"☣️ Epidemic in {city}! Adding 3 {color} cubes.", delay = 1500)
             current_level = data_unloader.cities[city]["infection_levels"][color_index]
             cubes_to_add = 3
 
@@ -1202,7 +1202,7 @@ def handle_epidemic(player_id):
                 data_unloader.infection_cubes[color_index] -= cubes_to_add
                 check_game_over()
         else:
-            world_map_drawer.update_game_text(f"🛡️ Infection/Outbreak prevented in {city} by Medic/Quarantine Specialist!")
+            world_map_drawer.queue_game_text(f"🛡️ Infection/Outbreak prevented in {city} by Medic/Quarantine Specialist!", delay = 1500)
             return
         data_unloader.infection_discard.append(bottom_card)
 
@@ -1224,7 +1224,7 @@ def trigger_outbreak(city_name, color_index):
         if city in protected_cities or city in quarantined_cities or city==medic_protected_city:
             continue  # Don't outbreak the same city twice in this chain
 
-        world_map_drawer.update_game_text(f"💥 Outbreak of {color} disease in {city}!")
+        world_map_drawer.queue_game_text(f"💥 Outbreak of {color} disease in {city}!", delay = 1500)
         data_unloader.outbreak_marker += 1
         world_map_drawer.update_outbreak_marker()
         check_game_over()
@@ -1243,8 +1243,8 @@ def trigger_outbreak(city_name, color_index):
                     )
 
                     if iz_ban_active:
-                        world_map_drawer.update_game_text(
-                            f"🛡️ Chain reaction outbreak in {neighbor} prevented by Infection Zone Ban!"
+                        world_map_drawer.queue_game_text(
+                            f"🛡️ Chain reaction outbreak in {neighbor} prevented by Infection Zone Ban!", delay = 1500
                         )
                         # Still cap at 3 cubes, no outbreak occurs
                         data_unloader.cities[neighbor]["infection_levels"][color_index] = 3
@@ -1262,5 +1262,5 @@ def trigger_outbreak(city_name, color_index):
                     data_unloader.infection_cubes[color_index] -= cubes_to_add
                     check_game_over()
             else:
-                world_map_drawer.update_game_text(f"🛡️ Infection/Outbreak prevented in {city} by Medic/Quarantine Specialist!")
+                world_map_drawer.queue_game_text(f"🛡️ Infection/Outbreak prevented in {city} by Medic/Quarantine Specialist!", delay = 1500)
                 return
