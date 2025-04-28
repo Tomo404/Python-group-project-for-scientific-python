@@ -450,6 +450,7 @@ def queue_game_text(message, delay=1000):
         show_next_message()
 
 def show_next_message():
+    """Displays next message after deleting the previous one."""
     global message_queue, is_showing_message
     if message_queue:
         is_showing_message = True
