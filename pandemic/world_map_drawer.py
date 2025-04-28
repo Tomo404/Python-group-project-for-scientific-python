@@ -307,6 +307,7 @@ def setup_buttons(event):
             button.place(x=4 + x - button_width // 2, y=y - button_height // 2, width=button_width, height=button_height)
 
 def setup_skip_turn_button(event):
+    """Sets up the turn skip button."""
     if not BUILDING_DOCS:
         skip_button = tk.Button(root, text="Skip Turn", font=("Arial", 8), bg="grey30", fg="black",
                                 command=lambda: handle_click("skip_turn"))
