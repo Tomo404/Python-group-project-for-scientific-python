@@ -13,6 +13,7 @@ game_start = True
 game_started = False  # Flag to ensure we only start the game once
 
 def next_turn():
+    """Updates player profile, markers, cards, actions, preparing the next player's turn."""
     global current_player_index
 
     if functions.check_game_over():
@@ -32,6 +33,7 @@ def next_turn():
     world_map_drawer.current_playerturn = player_role  # or player_role if your other code expects role
 
 def start_game():
+    """Initiates the game."""
     global game_started
     if game_started:
         return
@@ -46,6 +48,7 @@ def start_game():
     world_map_drawer.root.mainloop()
 
 def end_game(game_over):
+    """If one of the 4 game endings is achieved, the window closes."""
     if game_over:
         root.after(5000, root.destroy)
 
