@@ -135,7 +135,7 @@ if not BUILDING_DOCS:
                             data_unloader.infection_cubes[i] += cubes
                             infection_levels[i] = 0
                             world_map_drawer.queue_game_text(
-                                f"🧪 Medic removed all {['yellow', 'red', 'blue', 'black'][i]} infection cubes in {destination_card["name"]} by direct flight!", delay = 1500
+                                f"🧪 Medic removed all {['yellow', 'red', 'blue', 'black'][i]} infection cubes in {destination_card['name']} by direct flight!", delay = 1500
                             )
                     world_map_drawer.update_text(player_id)
             elif purpose == "charter_flight":
