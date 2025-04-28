@@ -38,6 +38,7 @@ if not BUILDING_DOCS:
     map_image = None
 
 def create_window():
+    """Creates canvas."""
     global root, canvas, background_image, map_image
     root.geometry(f"{window_width}x{window_height}")
     root.title("Pandemic Game Map")
@@ -167,8 +168,8 @@ if not BUILDING_DOCS:
 text_elements = {}
 
 def draw_initial_text():
+    """Creates the initial text elements on the map."""
     if not BUILDING_DOCS:
-        """Creates the initial text elements on the map."""
         global text_elements
         i = data_unloader.infection_rate_marker  # Infection rate index
 
@@ -184,8 +185,8 @@ def draw_initial_text():
         text_elements["player_city"] = canvas.create_text((501 * scale_factor) + x_offset, (1013 * scale_factor) + y_offset, text=f" city: {data_unloader.players_locations[0]}", font=("Arial", int(12 * scale_factor), "bold"), fill="black")
 
 def update_text(current_player_id):
+    """Updates the text elements dynamically based on the current player."""
     if not BUILDING_DOCS:
-        """Updates the text elements dynamically based on the current player."""
         i = data_unloader.infection_rate_marker  # Get updated infection rate index
         canvas.itemconfig(text_elements["infection_rate"], text=f"{data_unloader.infection_rate_marker_amount[i]}")
         canvas.itemconfig(text_elements["research_centers"], text=f" x {data_unloader.research_centers}")
@@ -211,6 +212,7 @@ player_markers = {}
 
 # Function to update player markers when they move
 def update_player_marker(player_id, new_city):
+    """Updates the player marker to represent which player is where."""
     if not BUILDING_DOCS:
         global player_markers
 
@@ -247,8 +249,8 @@ for player_id, (player, city) in enumerate(data_unloader.players_locations.items
 
 #player hand management
 def player_hand_popup():
+    """Opens a pop-up window listing the cards in each player's hand."""
     if not BUILDING_DOCS:
-        """Opens a pop-up window listing the cards in each player's hand."""
         popup2 = tk.Toplevel(root)
         popup2.title("Player Hands")
         popup2.geometry("700x400")  # Adjust window size
@@ -281,6 +283,7 @@ def handle_click(action):
         print(f"Action '{action}' not found in functions.")
 
 def setup_buttons(event):
+    """Sets up the buttons for actions."""
     if not BUILDING_DOCS:
         button_width = 180 * scale_factor  # Approximate width of the buttons
         button_height = 30 * scale_factor  # Approximate height of the buttons
@@ -315,8 +318,8 @@ def setup_skip_turn_button(event):
 outbreak_marker_id = None
 
 def update_outbreak_marker():
+    """Updates the outbreak marker position when an outbreak occurs."""
     if not BUILDING_DOCS:
-        """Updates the outbreak marker position when an outbreak occurs."""
         global outbreak_marker_id
 
         # Delete the previous outbreak marker
@@ -341,9 +344,8 @@ cure_markers = [((695 * scale_factor) + x_offset, (1049 * scale_factor) + y_offs
 
 
 def update_disease_status(disease_index):
+    """Updates the displayed disease status marker for a specific disease."""
     if not BUILDING_DOCS:
-        """Updates the displayed disease status marker for a specific disease."""
-
         # Determine the new color based on status
         status = data_unloader.infection_status[disease_index]
         if status == 0:
@@ -375,8 +377,8 @@ current_playerid = None
 current_playerturn = None
 
 def load_role_images():
+    """Loads all role images into memory."""
     if not BUILDING_DOCS:
-        """Loads all role images into memory."""
         roles = data_unloader.player_roles
         for role in roles:
             try:
@@ -399,8 +401,8 @@ def load_role_images():
 
 
 def update_player_portrait(canvas, current_player, iter):
+    """Updates the canvas with the current player's role portrait."""
     if not BUILDING_DOCS:
-        """Updates the canvas with the current player's role portrait."""
         global current_portrait
         global current_playerid
         global current_playerturn
@@ -435,10 +437,29 @@ def update_player_portrait(canvas, current_player, iter):
 
 # Variable to store the current turn text object
 current_game_text = None
+message_queue = []
+is_showing_message = False
+
+def queue_game_text(message, delay=1000):
+    """Queue a message to be displayed after the previous one."""
+    global message_queue, is_showing_message
+    message_queue.append((message, delay))
+    if not is_showing_message:
+        show_next_message()
+
+def show_next_message():
+    global message_queue, is_showing_message
+    if message_queue:
+        is_showing_message = True
+        message, delay = message_queue.pop(0)
+        update_game_text(message)
+        root.after(delay, show_next_message)
+    else:
+        is_showing_message = False
 
 def update_game_text(message):
+    """Updates the displayed text to indicate whose turn it is and what they did."""
     if not BUILDING_DOCS:
-        """Updates the displayed text to indicate whose turn it is and what they did."""
         global current_game_text  # Allow modification of the global variable
 
         turn_text_x, turn_text_y = 797 * scale_factor + x_offset, 1129 * scale_factor + y_offset
@@ -457,6 +478,7 @@ def update_game_text(message):
         )
 
 def rotate_player_hand(player_id):
+    """Rotates player hand to display the next player's cards."""
     data_unloader.current_hand = data_unloader.players_hands[player_id]
 
 if not BUILDING_DOCS:
@@ -523,6 +545,7 @@ if not BUILDING_DOCS:
 
 
 def start_gui(player_id, player_role):
+    """Sets up canvas, buttons and texts."""
     create_window()
     update_research_centers()
     draw_initial_text()
