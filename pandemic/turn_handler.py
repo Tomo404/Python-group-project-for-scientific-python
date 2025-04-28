@@ -22,7 +22,7 @@ def next_turn():
     player_id = current_player_index
     player_role = players[player_id]
     world_map_drawer.update_player_portrait(world_map_drawer.canvas, player_role, player_id + 1)
-    world_map_drawer.update_game_text(f"{player_role}'s turn")
+    world_map_drawer.queue_game_text(f"{player_role}'s turn", delay = 1500)
     current_city = data_unloader.players_locations[player_id]
     world_map_drawer.update_player_marker(player_id, current_city)
     current_player_index = (current_player_index + 1) % len(players)
