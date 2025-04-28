@@ -273,7 +273,7 @@ if not BUILDING_DOCS:
         popup.wait_window()  # Waits until popup is destroyed before continuing
 
 
-def check_game_over():  
+def check_game_over():
     """Checks if one of the game over requirements is met: 3 losing and 1 winning situation."""
     from pandemic import turn_handler
     global game_over
@@ -1222,7 +1222,7 @@ def trigger_outbreak(city_name, color_index):
     If the neighbor is also on the brink of outbreak, a chain reaction happens and that city
     also performs an outbreak, not infecting the previous city with outbreak.
     """
-    
+
     colors = ["yellow", "red", "blue", "black"]
     color = colors[color_index]
     protected_cities = set()  # Cities that already had an outbreak this round
