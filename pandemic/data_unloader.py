@@ -122,6 +122,7 @@ def set_game_settings():
 set_game_settings()
 
 def draw_initial_infections():
+    """Draws the 9 starting infected cities and places down the first infection cubes."""
     global infection_deck, infection_discard, infection_cubes, cities
 
     # Draw 9 cards and apply infection cube placement
