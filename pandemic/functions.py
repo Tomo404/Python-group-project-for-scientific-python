@@ -273,7 +273,8 @@ if not BUILDING_DOCS:
         popup.wait_window()  # Waits until popup is destroyed before continuing
 
 
-def check_game_over():  # checks if one of the game over requirements is met: 3 losing and 1 winning situation
+def check_game_over():  
+    """Checks if one of the game over requirements is met: 3 losing and 1 winning situation."""
     from pandemic import turn_handler
     global game_over
     if len(data_unloader.player_deck) < 2:  # We lose if the player deck runs out of cards
@@ -300,6 +301,7 @@ def check_game_over():  # checks if one of the game over requirements is met: 3 
 
 # Function to reset the card draws at the start of each phase
 def reset_card_draws(player_id):
+    """Makes sure the card draws and ability locks are reset after turn end."""
     global remaining_player_cards, remaining_infection_cards, operations_expert_switch, improved_sanitation_active
     global playercards_drawn, infectioncards_drawn, player_draw_locked  # ✅ add this
     remaining_player_cards = 2  # Reset player card draws (fixed)
@@ -964,6 +966,7 @@ def play_event_card(player_id) -> None:
     popup.grab_set()
 
 def remote_treatment_popup(player_id, on_confirm_callback) -> None:
+    """Performs the remote treatment event card: remove 2 infection cubes from the board."""
     max_treats = 2
     infection_colors = ["yellow", "red", "blue", "black"]
 
@@ -1087,12 +1090,12 @@ def drawing_phase(player_id) -> None:
     world_map_drawer.update_text(player_id)
 
 def infection_phase(player_id) -> None:
-    global infectionless_night
     """
     Draw one infection card and resolve it:
     1. Infect the city with 1 cube of the card's color.
     2. If the city already has 3 cubes, trigger an outbreak.
     """
+    global infectionless_night
     infection_discard = data_unloader.infection_discard
     infections = data_unloader.infections
     infection_cubes = data_unloader.infection_cubes
@@ -1160,6 +1163,7 @@ def draw_infection_card(player_id) -> None:
 
 # Call this function before transitioning to a new phase
 def transition_to_next_phase(player_id):
+    """Moves to the next player's turn, resets cards."""
     from pandemic import turn_handler
     reset_card_draws(player_id)
 
@@ -1167,13 +1171,13 @@ def transition_to_next_phase(player_id):
     turn_handler.next_turn()
 
 def handle_epidemic(player_id):
-    global remaining_infection_cards
     """
     Handles the effects of an epidemic card:
     1. Increase infection rate
     2. Infect a city with 3 cubes
     3. Intensify (shuffle discard pile and place it on top)
     """
+    global remaining_infection_cards
     # 1. Increase infection rate marker
     data_unloader.infection_rate_marker += 1
     remaining_infection_cards = data_unloader.infection_rate_marker_amount[data_unloader.infection_rate_marker]
@@ -1213,6 +1217,12 @@ def handle_epidemic(player_id):
     world_map_drawer.update_text(player_id)
 
 def trigger_outbreak(city_name, color_index):
+    """
+    Triggers outbreak. When a city has an outbreak, all neighbors of it will get infected.
+    If the neighbor is also on the brink of outbreak, a chain reaction happens and that city
+    also performs an outbreak, not infecting the previous city with outbreak.
+    """
+    
     colors = ["yellow", "red", "blue", "black"]
     color = colors[color_index]
     protected_cities = set()  # Cities that already had an outbreak this round
