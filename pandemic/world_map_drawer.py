@@ -5,6 +5,7 @@ from pandemic import data_unloader
 from pandemic.data_unloader import cities  # Import city data
 import os
 import sys
+import importlib.resources as pkg_resources
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 BUILDING_DOCS = os.environ.get("READTHEDOCS") == "True" or "sphinx" in sys.modules
@@ -18,9 +19,10 @@ if not BUILDING_DOCS:
     root = tk.Tk()
     canvas = tk.Canvas(root, width=window_width, height=window_height)
     # Load image
-    image_path = os.path.join(BASE_DIR, "..", "pictures", "world_map.png")
-    pil_image = Image.open(image_path)
-    img_width, img_height = pil_image.size  # Get image size
+    with pkg_resources.files("pandemic.pictures").joinpath("world_map.png").open("rb") as image_path:
+        pil_image = Image.open(image_path)
+        pil_image.load()
+        img_width, img_height = pil_image.size  # Get image size
     # Scale image while maintaining aspect ratio
     scale_factor = min(window_width / img_width, window_height / img_height)
     new_width = int(img_width * scale_factor)
@@ -28,9 +30,10 @@ if not BUILDING_DOCS:
     resized_image = pil_image.resize((new_width, new_height), Image.LANCZOS)
 
     # Load the background image
-    bg_image_path = os.path.join(BASE_DIR, "..", "pictures", "background_image.png")
-    bg_image = Image.open(bg_image_path)
-    bg_image = bg_image.resize((window_width, window_height), Image.LANCZOS)
+    with pkg_resources.files("pandemic.pictures").joinpath("background_image.png").open("rb") as bg_image_path:
+        bg_image = Image.open(bg_image_path)
+        bg_image.load()
+        bg_image = bg_image.resize((window_width, window_height), Image.LANCZOS)
 
     x_offset = (window_width - new_width) // 2
     y_offset = (window_height - new_height) // 2
