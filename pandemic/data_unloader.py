@@ -47,12 +47,8 @@ player_roles = ["Medic", "Scientist", "Operations Expert", "Quarantine Specialis
 
 def load_infections():
     """Loads and formats city data from the file."""
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-    # Then use that to build a path to your data file
-    infection_cards_path = os.path.join(BASE_DIR, '../variables/infection_cards.txt')
-
-    with open(infection_cards_path, 'r', encoding='utf-8') as file:
+    with pkg_resources.files("pandemic.variables").joinpath("infection_cards.txt").open("r", encoding="utf-8") as file:
         infection_data = json.load(file)
 
     # Process each city and store it in a structured dictionary
@@ -151,12 +147,7 @@ def load_player_cards():
     """Loads city and event cards from file, adds epidemic cards, and shuffles the player deck."""
     global epidemic_cards  # Access global variable
 
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-    # Then use that to build a path to your data file
-    other_cards_path = os.path.join(BASE_DIR, '../variables/other_cards.txt')
-
-    with open(other_cards_path, 'r', encoding='utf-8') as file:
+    with pkg_resources.files("pandemic.variables").joinpath("other_cards.txt").open("r", encoding="utf-8") as file:
         cards_data = json.load(file)
 
     city_cards = []
