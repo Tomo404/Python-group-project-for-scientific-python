@@ -484,13 +484,13 @@ def rotate_player_hand(player_id):
 
 if not BUILDING_DOCS:
     try:
-        with pkg_resources.files("pandemic.pictures").joinpath("../pictures/infection_card_back.png").open("rb") as infection_img_path:
+        with pkg_resources.files("pandemic.pictures").joinpath("infection_card_back.png").open("rb") as infection_img_path:
             original_infection = Image.open(infection_img_path)
             original_infection.load()
             resized_infection = original_infection.resize((int((original_infection.width + 134) * scale_factor),
                                                            int((original_infection.height + 76) * scale_factor)))
 
-        with pkg_resources.files("pandemic.pictures").joinpath("../pictures/player_card_back.png").open("rb") as player_img_path:
+        with pkg_resources.files("pandemic.pictures").joinpath("player_card_back.png").open("rb") as player_img_path:
             original_player = Image.open(player_img_path)
             original_player.load()
             resized_player = original_player.resize((int((original_player.width + 46) * scale_factor),
