@@ -34,20 +34,15 @@ if not BUILDING_DOCS:
 
     x_offset = (window_width - new_width) // 2
     y_offset = (window_height - new_height) // 2
-    background_image = None
-    map_image = None
-
-def create_window():
-    """Creates canvas."""
-    global root, canvas, background_image, map_image
-    root.geometry(f"{window_width}x{window_height}")
-    root.title("Pandemic Game Map")
-    canvas.pack(fill="both", expand=True)
-
-    # Convert to Tkinter format
     bg_tk_image = ImageTk.PhotoImage(bg_image)
     map_image = ImageTk.PhotoImage(resized_image)
 
+def create_window():
+    """Creates canvas."""
+    global root, canvas, bg_tk_image, map_image
+    root.geometry(f"{window_width}x{window_height}")
+    root.title("Pandemic Game Map")
+    canvas.pack(fill="both", expand=True)
     # Prevent garbage collection
     canvas.bg_tk_image = bg_tk_image
     canvas.map_image = map_image
