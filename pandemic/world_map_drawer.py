@@ -33,7 +33,7 @@ if not BUILDING_DOCS:
     with pkg_resources.files("pandemic.pictures").joinpath("background_image.png").open("rb") as bg_image_path:
         bg_image = Image.open(bg_image_path)
         bg_image.load()
-        bg_image = bg_image.resize((window_width, window_height), Image.LANCZOS)
+    bg_image = bg_image.resize((window_width, window_height), Image.LANCZOS)
 
     x_offset = (window_width - new_width) // 2
     y_offset = (window_height - new_height) // 2
@@ -383,10 +383,10 @@ def load_role_images():
         for role in roles:
             try:
                 filename = f"{role.lower().replace(' ', '_')}.png"
-                img_path = os.path.join(os.path.dirname(__file__), "../pictures", filename)
-
-                img = Image.open(img_path)
-                img = img.resize((int(150 * scale_factor), int(210 * scale_factor)))  # Resize to fit UI
+                with pkg_resources.files("pandemic.pictures").joinpath(filename).open(
+                    "rb") as img_path:
+                    img = Image.open(img_path)
+                    img = img.resize((int(150 * scale_factor), int(210 * scale_factor)))  # Resize to fit UI
 
                 role_images[role] = ImageTk.PhotoImage(img)
 
@@ -484,15 +484,17 @@ def rotate_player_hand(player_id):
 
 if not BUILDING_DOCS:
     try:
-        # Load and resize infection card image
-        infection_img_path = os.path.join(os.path.dirname(__file__), "../pictures/infection_card_back.png")
-        player_img_path = os.path.join(os.path.dirname(__file__), "../pictures/player_card_back.png")
+        with pkg_resources.files("pandemic.pictures").joinpath("../pictures/infection_card_back.png").open("rb") as infection_img_path:
+            original_infection = Image.open(infection_img_path)
+            original_infection.load()
+            resized_infection = original_infection.resize((int((original_infection.width + 134) * scale_factor),
+                                                           int((original_infection.height + 76) * scale_factor)))
 
-        original_infection = Image.open(infection_img_path)
-        resized_infection = original_infection.resize((int((original_infection.width + 134) * scale_factor), int((original_infection.height + 76) * scale_factor)))
-
-        original_player = Image.open(player_img_path)
-        resized_player = original_player.resize((int((original_player.width + 46) * scale_factor), int((original_player.height + 67) * scale_factor)))
+        with pkg_resources.files("pandemic.pictures").joinpath("../pictures/player_card_back.png").open("rb") as player_img_path:
+            original_player = Image.open(player_img_path)
+            original_player.load()
+            resized_player = original_player.resize((int((original_player.width + 46) * scale_factor),
+                                                     int((original_player.height + 67) * scale_factor)))
 
         # Convert to Tk images
         button_background_image2 = ImageTk.PhotoImage(resized_infection)
