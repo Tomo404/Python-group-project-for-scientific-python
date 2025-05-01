@@ -39,10 +39,7 @@ def start_game():
         return
     game_started = True
 
-    print("🎮 Starting Pandemic...")
-    world_map_drawer.create_window()
     world_map_drawer.start_gui(current_player_index, players[current_player_index])
-
     # 🚨 Do NOT call `next_turn()` here immediately
     # We'll call it AFTER start_gui schedules it
     world_map_drawer.root.mainloop()
@@ -50,7 +47,12 @@ def start_game():
 def end_game(game_over):
     """If one of the 4 game endings is achieved, the window closes."""
     if game_over:
-        root.after(5000, root.destroy)
+        root.after(10000, root.destroy)
 
-if __name__ == "__main__":
-    start_game()
+if not BUILDING_DOCS:
+    # Prevent double start
+    if hasattr(sys.modules[__name__], "_already_started"):
+        pass
+    else:
+        setattr(sys.modules[__name__], "_already_started", True)
+        start_game()
