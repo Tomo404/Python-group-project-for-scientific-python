@@ -22,10 +22,7 @@ if "Quarantine Specialist" in data_unloader.in_game_roles:
     quarantined_cities = ["Atlanta", "Washington", "Miami", "Chicago"]
 else:
     quarantined_cities = []
-if "Medic" in data_unloader.in_game_roles:
-    medic_protected_city = "Atlanta"
-else:
-    medic_protected_city = ""
+medic_protected_city = None
 mobile_hospital_active = False
 improved_sanitation_active = False
 infectionless_night = False
@@ -536,6 +533,7 @@ def oe_build_research_center(player_id) -> bool:
                 world_map_drawer.queue_game_text(
                     f"🏛️ Moved research center from {chosen_city} to {current_city}.", delay = 1500)
                 world_map_drawer.update_research_centers()
+                world_map_drawer.update_text(player_id)
                 action_done["ok"] = True
                 select_popup.destroy()
 
@@ -552,6 +550,7 @@ def oe_build_research_center(player_id) -> bool:
         world_map_drawer.queue_game_text(
             f"🏛️ Player {player_id + 1} built research center in {current_city}!", delay = 1500)
         world_map_drawer.update_research_centers()
+        world_map_drawer.update_text(player_id)
         action_done["ok"] = True
     return action_done["ok"]  # tell the caller whether the build really happened
 
@@ -1108,9 +1107,13 @@ def infection_phase(player_id) -> None:
         city_name = infection_card["name"]
         city_color = infection_card["color"]
         color_index = ["yellow", "red", "blue", "black"].index(city_color)
+        if data_unloader.infection_status[color_index] == 2:
+            world_map_drawer.queue_game_text(f"✅ {city_color.capitalize()} is eradicated! No infection in {city_name}.",
+                                             delay=1500)
+            return
 
         world_map_drawer.queue_game_text(f"🦠 Infecting {city_name} with 1 {city_color} cube.", delay = 1500)
-        if city_name in cities and city_name not in quarantined_cities and city_name != medic_protected_city and data_unloader.infection_status[color_index] != 2:
+        if city_name in cities and city_name not in quarantined_cities and not (city_name == medic_protected_city and data_unloader.infection_status[color_index] >= 1):
             current_level = cities[city_name]["infection_levels"][color_index]
             cubes_to_add = 1
 
@@ -1149,16 +1152,22 @@ def draw_player_card(player_id) -> None:
 def draw_infection_card(player_id) -> None:
     """Draw an infection card for the current player."""
     global infectioncards_drawn, infectionless_night, remaining_infection_cards
+
     if infectionless_night:
-        remaining_infection_cards = 1
-        infectionless_night = False
+        world_map_drawer.queue_game_text("One Quiet Night: Skipping infection phase.", delay=1500)
+        infectionless_night = False  # Consume the effect now
+        infectioncards_drawn = remaining_infection_cards  # Pretend it was drawn
+        transition_to_next_phase(player_id)
+        return
+
     if infectioncards_drawn < remaining_infection_cards and data_unloader.actions == 0 and player_draw_locked:
         infection_phase(player_id)
         infectioncards_drawn += 1
     else:
-        world_map_drawer.queue_game_text("It's not the infection phase yet!", delay = 1500)
+        world_map_drawer.queue_game_text("It's not the infection phase yet!", delay=1500)
+
     if infectioncards_drawn == remaining_infection_cards:
-        world_map_drawer.queue_game_text("End of Turn!", delay = 1500)
+        world_map_drawer.queue_game_text("End of Turn!", delay=1500)
         transition_to_next_phase(player_id)
 
 # Call this function before transitioning to a new phase
@@ -1187,8 +1196,16 @@ def handle_epidemic(player_id):
         city = bottom_card["name"]
         color = bottom_card["color"]
         color_index = ["yellow", "red", "blue", "black"].index(color)
+        if data_unloader.infection_status[color_index] == 2:
+            world_map_drawer.queue_game_text(f"✅ {color.capitalize()} is eradicated! No infection in {city}.",
+                                             delay=1500)
+            return
 
-        if city not in quarantined_cities and city != medic_protected_city and data_unloader.infection_status[color_index] != 2:
+        if city not in quarantined_cities and not (
+    "Medic" in data_unloader.in_game_roles and
+    medic_protected_city == city and
+    data_unloader.infection_status[color_index] >= 1
+):
             world_map_drawer.queue_game_text(f"☣️ Epidemic in {city}! Adding 3 {color} cubes.", delay = 1500)
             current_level = data_unloader.cities[city]["infection_levels"][color_index]
             cubes_to_add = 3
@@ -1231,7 +1248,7 @@ def trigger_outbreak(city_name, color_index):
     while outbreak_queue:
         city = outbreak_queue.pop(0)
 
-        if city in protected_cities or city in quarantined_cities or city==medic_protected_city:
+        if (city in protected_cities or city in quarantined_cities or city==medic_protected_city) and "Medic" in data_unloader.in_game_roles:
             continue  # Don't outbreak the same city twice in this chain
 
         world_map_drawer.queue_game_text(f"💥 Outbreak of {color} disease in {city}!", delay = 1500)
@@ -1244,7 +1261,11 @@ def trigger_outbreak(city_name, color_index):
         for neighbor in data_unloader.cities[city]["relations"]:
             current_level = data_unloader.cities[neighbor]["infection_levels"][color_index]
             cubes_to_add = 1
-            if neighbor not in quarantined_cities and neighbor != medic_protected_city and data_unloader.infection_status[color_index] != 2:
+            if neighbor not in quarantined_cities and not (
+    "Medic" in data_unloader.in_game_roles and
+    medic_protected_city == city_name and
+    data_unloader.infection_status[color_index] >= 1
+):
                 if current_level + cubes_to_add > 3:
                     # Check for active Infection Zone Ban in discard
                     iz_ban_active = any(
