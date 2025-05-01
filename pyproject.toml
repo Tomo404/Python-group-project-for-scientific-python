@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pandemic-scipy"
-version = "3.0.0"
+version = "4.0.0"
 description = "A Python simulation package for pandemic game logic"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -22,6 +22,7 @@ dependencies = [
 
 [tool.setuptools]
 packages = ["pandemic"]
+include-package-data = true
 
 [tool.setuptools.package-data]
 pandemic = ["pictures/*.png", "variables/*.txt"]
