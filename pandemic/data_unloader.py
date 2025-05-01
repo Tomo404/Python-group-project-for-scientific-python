@@ -1,15 +1,11 @@
 import json
 import random
 import os
+import importlib.resources as pkg_resources
 
 def load_cities():
     """Loads and formats city data from the file."""
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-    # Then use that to build a path to your data file
-    cities_path = os.path.join(BASE_DIR, '../variables/cities_data.txt')
-
-    with open(cities_path, 'r', encoding='utf-8') as file:
+    with pkg_resources.files("pandemic.variables").joinpath("cities_data.txt").open("r", encoding="utf-8") as file:
         cities_data = json.load(file)
 
     # Process each city and store it in a structured dictionary
