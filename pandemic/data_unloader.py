@@ -241,3 +241,5 @@ players_locations = {i: "Atlanta" for i in range(players)}
 
 if "Atlanta" in cities:
     cities["Atlanta"]["player_amount"] = players
+
+print("🎮 Starting Pandemic...")
