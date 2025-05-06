@@ -6,10 +6,8 @@
 pandemic documentation
 ======================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
-
+`🔗 Open the GitHub repo here: <https://github.com/Tomo404/Python-group-project-for-scientific-python>`_
+This page contains all the information for the scipy group project "Pandemic". 
 
 .. toctree::
    :maxdepth: 2
