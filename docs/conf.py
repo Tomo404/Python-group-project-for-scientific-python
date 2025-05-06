@@ -37,6 +37,13 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
+html_context = {
+    "display_github": True,
+    "github_user": "Tomo404",
+    "github_repo": "Python-group-project-for-scientific-python",
+    "github_version": "main",  # or 'master', based on your repo
+    "conf_py_path": "/docs/",  # path from the repo root to this conf.py file
+}
 html_static_path = ['_static']
 master_doc = 'index'
